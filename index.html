@@ -1,0 +1,2548 @@
+<!-- VERSION_TAG: Beta 1.2v -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MendeleevDrop — @mendeleev_drop_bot</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* YouTube-style Dark Mode (#0f0f0f / #181818) & Clean Light Mode (#f9f9f9 / #ffffff) */
+        :root {
+            --bg-main: #0f0f0f;
+            --bg-surface: #181818;
+            --bg-elevated: #242424;
+            --bg-inner: #121212;
+            --border-subtle: #2c2c2c;
+            --text-primary: #f1f1f1;
+            --text-secondary: #aaaaaa;
+            --nav-bg: rgba(15, 15, 15, 0.96);
+        }
+
+        body.theme-light {
+            --bg-main: #f9f9f9;
+            --bg-surface: #ffffff;
+            --bg-elevated: #eeeeee;
+            --bg-inner: #f3f4f6;
+            --border-subtle: #dcdcdc;
+            --text-primary: #0f0f0f;
+            --text-secondary: #606060;
+            --nav-bg: rgba(255, 255, 255, 0.96);
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            user-select: none;
+            transition: background-color 0.25s ease, color 0.25s ease;
+        }
+
+        .surface-box {
+            background-color: var(--bg-surface);
+            border-color: var(--border-subtle);
+        }
+
+        .elevated-box {
+            background-color: var(--bg-elevated);
+            border-color: var(--border-subtle);
+        }
+
+        .inner-slot {
+            background-color: var(--bg-inner);
+        }
+
+        .text-muted {
+            color: var(--text-secondary);
+        }
+
+        .font-mono-tech {
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Auto-hiding top header on scroll down */
+        #stickyHeaderWrapper {
+            transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+            will-change: transform;
+        }
+        #stickyHeaderWrapper.header-hidden {
+            transform: translateY(-105%);
+        }
+
+        /* 7 Rarity Levels (Strictly English names) */
+        .rarity-Common {
+            border-color: #71717a;
+            background: linear-gradient(145deg, rgba(113, 113, 122, 0.22), var(--bg-surface));
+        }
+        .text-rarity-Common { color: #a1a1aa; }
+        body.theme-light .text-rarity-Common { color: #52525b; }
+
+        .rarity-Rare {
+            border-color: #3b82f6;
+            background: linear-gradient(145deg, rgba(59, 130, 246, 0.22), var(--bg-surface));
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.16);
+        }
+        .text-rarity-Rare { color: #60a5fa; }
+        body.theme-light .text-rarity-Rare { color: #2563eb; }
+
+        .rarity-SuperRare {
+            border-color: #06b6d4;
+            background: linear-gradient(145deg, rgba(6, 182, 212, 0.24), var(--bg-surface));
+            box-shadow: 0 0 14px rgba(6, 182, 212, 0.2);
+        }
+        .text-rarity-SuperRare { color: #22d3ee; }
+        body.theme-light .text-rarity-SuperRare { color: #0891b2; }
+
+        .rarity-Epic {
+            border-color: #a855f7;
+            background: linear-gradient(145deg, rgba(168, 85, 247, 0.25), var(--bg-surface));
+            box-shadow: 0 0 16px rgba(168, 85, 247, 0.24);
+        }
+        .text-rarity-Epic { color: #c084fc; }
+        body.theme-light .text-rarity-Epic { color: #9333ea; }
+
+        .rarity-Legendary {
+            border-color: #f59e0b;
+            background: linear-gradient(145deg, rgba(245, 158, 11, 0.28), var(--bg-surface));
+            box-shadow: 0 0 18px rgba(245, 158, 11, 0.28);
+        }
+        .text-rarity-Legendary { color: #fbbf24; }
+        body.theme-light .text-rarity-Legendary { color: #d97706; }
+
+        .rarity-Mythic {
+            border-color: #ef4444;
+            background: linear-gradient(145deg, rgba(239, 68, 68, 0.3), var(--bg-surface));
+            box-shadow: 0 0 22px rgba(239, 68, 68, 0.32);
+        }
+        .text-rarity-Mythic { color: #f87171; }
+        body.theme-light .text-rarity-Mythic { color: #dc2626; }
+
+        /* Animated Rainbow Rarity */
+        @keyframes rainbowFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .rarity-Rainbow {
+            position: relative;
+            border: 2px solid transparent;
+            background: linear-gradient(var(--bg-surface), var(--bg-surface)) padding-box,
+                        linear-gradient(120deg, #ff0055, #ffcc00, #00ffcc, #3b82f6, #a855f7, #ff0055) border-box;
+            background-size: 300% 300%;
+            animation: rainbowFlow 3s ease infinite;
+            box-shadow: 0 0 24px rgba(236, 72, 153, 0.35), 0 0 12px rgba(56, 189, 248, 0.25);
+        }
+        .text-rarity-Rainbow {
+            background: linear-gradient(90deg, #ff4d4d, #f9cb28, #2ce69b, #38bdf8, #c084fc, #ff4d4d);
+            background-size: 250% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbowFlow 2.2s linear infinite;
+            font-weight: 900;
+        }
+
+        /* When Rainbow FX disabled in Settings */
+        body.no-rainbow-fx .rarity-Rainbow {
+            animation: none !important;
+            border: 2px solid #ec4899;
+            background: linear-gradient(145deg, rgba(236, 72, 153, 0.28), var(--bg-surface));
+            box-shadow: 0 0 16px rgba(236, 72, 153, 0.25);
+        }
+        body.no-rainbow-fx .text-rarity-Rainbow {
+            animation: none !important;
+            background: none !important;
+            -webkit-background-clip: initial !important;
+            -webkit-text-fill-color: #ec4899 !important;
+            color: #ec4899 !important;
+        }
+
+        /* Uncollected Index Card Gray Silhouette */
+        .index-locked {
+            filter: grayscale(100%);
+            opacity: 0.48;
+            border-color: var(--border-subtle) !important;
+            background: var(--bg-surface) !important;
+            box-shadow: none !important;
+            animation: none !important;
+        }
+
+        /* Roulette Drum & Visual Micro-pulse */
+        .roulette-viewport {
+            position: relative;
+            overflow: hidden;
+            mask-image: linear-gradient(to right, transparent 0%, black 9%, black 91%, transparent 100%);
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 9%, black 91%, transparent 100%);
+        }
+        .roulette-track {
+            display: flex;
+            gap: 12px;
+            will-change: transform;
+        }
+        .roulette-pointer {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 3px;
+            transform: translateX(-50%);
+            background: linear-gradient(to bottom, #ff0033, #f59e0b, #ff0033);
+            box-shadow: 0 0 14px rgba(255, 0, 51, 0.85);
+            z-index: 20;
+            pointer-events: none;
+            transition: transform 0.06s ease-out;
+        }
+        .roulette-pointer::before,
+        .roulette-pointer::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 9px solid transparent;
+            border-right: 9px solid transparent;
+        }
+        .roulette-pointer::before { top: 0; border-top: 11px solid #ff0033; }
+        .roulette-pointer::after { bottom: 0; border-bottom: 11px solid #ff0033; }
+
+        @keyframes tickShake {
+            0% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-2px) scale(1.008); }
+            100% { transform: translateY(0px) scale(1); }
+        }
+        .drum-tick-pulse {
+            animation: tickShake 0.09s ease-out;
+        }
+
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: var(--bg-main); }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 9999px; }
+
+        @keyframes pulseGlow {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.04); opacity: 0.85; }
+        }
+        .animate-pulse-glow { animation: pulseGlow 1.8s infinite ease-in-out; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col pb-24">
+
+    <!-- ==================== SPLASH SCREEN ==================== -->
+    <div id="splashScreen" class="fixed inset-0 z-50 bg-[#0f0f0f] flex flex-col items-center justify-center p-6 transition-opacity duration-500">
+        <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-red-600 via-amber-500 to-purple-600 flex items-center justify-center shadow-2xl shadow-red-500/25 mb-5 animate-pulse-glow">
+            <span class="font-mono-tech text-3xl font-black text-white tracking-tighter">MD</span>
+        </div>
+        <h1 class="text-3xl font-black tracking-tight text-white">MendeleevDrop</h1>
+        <p class="text-xs text-[#aaaaaa] mt-1 font-mono-tech">@mendeleev_drop_bot</p>
+        <div class="w-48 h-1.5 bg-[#272727] rounded-full overflow-hidden mt-6">
+            <div id="splashBar" class="h-full bg-gradient-to-r from-red-500 to-amber-500 w-0 transition-all duration-700"></div>
+        </div>
+        <span id="splashVersionLabel" class="fixed bottom-3 right-4 text-[11px] font-mono-tech text-[#888888]">Beta 1.2v</span>
+    </div>
+
+    <!-- ==================== AUTO-HIDING STICKY TOP HEADER ==================== -->
+    <div id="stickyHeaderWrapper" class="sticky top-0 z-30">
+        <!-- Beta Testing Banner -->
+        <div class="w-full bg-amber-500/15 border-b border-amber-500/25 px-3 py-1 flex items-center justify-between text-[10px] sm:text-xs text-amber-500 backdrop-blur-md">
+            <div class="flex items-center gap-1.5">
+                <span class="inline-block w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping"></span>
+                <span data-i18n="betaNotice" class="font-semibold tracking-wide uppercase">БЕТА-ТЕСТИРОВАНИЕ • 100 ЭЛЕМЕНТОВ И МАТЕРИАЛОВ</span>
+            </div>
+            <span class="font-mono-tech text-muted">@mendeleev_drop_bot</span>
+        </div>
+
+        <!-- Player Strip Header (Click player bar to edit profile/nick directly) -->
+        <header class="surface-box border-b px-3 sm:px-6 py-2.5 backdrop-blur-md shadow-sm">
+            <div class="max-w-4xl mx-auto flex items-center justify-between gap-2">
+                <!-- Interactive Player Profile Bar -->
+                <button onclick="openProfileModal()" class="flex items-center gap-2.5 min-w-0 text-left elevated-box hover:opacity-90 border rounded-xl px-2.5 py-1.5 transition active:scale-98 group">
+                    <div id="headerAvatar" class="w-8 h-8 rounded-lg bg-gradient-to-br from-red-600 to-amber-500 flex items-center justify-center shrink-0 shadow text-white font-black text-sm">
+                        ⚗️
+                    </div>
+                    <div class="truncate">
+                        <div class="flex items-center gap-1">
+                            <span id="headerNickname" class="font-extrabold text-xs sm:text-sm truncate">Pioneer</span>
+                            <span class="text-[10px] text-muted group-hover:text-amber-500 transition">✎</span>
+                        </div>
+                        <div class="flex items-center gap-1 text-[10px] text-muted font-mono-tech">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                            <span id="headerPlayerId">ID #00001</span>
+                        </div>
+                    </div>
+                </button>
+
+                <!-- Balance (MD) & Daily Gift Shortcut -->
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                    <div class="elevated-box border rounded-xl px-3 py-1.5 flex items-center gap-1.5">
+                        <span class="text-amber-500 text-sm">⚛️</span>
+                        <span id="balanceDisplay" class="font-mono-tech font-bold text-xs sm:text-base">10,000</span>
+                        <span class="text-[10px] sm:text-[11px] font-black text-amber-500 uppercase">MD</span>
+                    </div>
+
+                    <button id="dailyGiftBtn" onclick="claimDailyGift()" class="p-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-500 text-xs font-bold transition active:scale-95 flex items-center gap-1" title="Daily Gift">
+                        <span>🎁</span>
+                        <span id="dailyGiftShort" class="hidden sm:inline font-mono-tech">+500</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+    </div>
+
+    <!-- ==================== MAIN CONTENT AREA ==================== -->
+    <main class="max-w-4xl w-full mx-auto px-3 sm:px-6 pt-3 flex-1">
+
+        <!-- ==================== TAB 1: ROULETTE / DROP & STAKE BOOST ==================== -->
+        <section id="tab-drop" class="space-y-4">
+            <!-- Case Selector -->
+            <div class="grid grid-cols-3 gap-2" id="caseSelector">
+                <!-- Populated by JS -->
+            </div>
+
+            <!-- Roulette Drum Container -->
+            <div id="rouletteBox" class="surface-box border rounded-2xl p-3.5 sm:p-5 shadow-lg relative">
+                <div class="flex items-center justify-between mb-2.5">
+                    <div class="flex items-center gap-2">
+                        <span id="currentCaseTitle" class="text-xs sm:text-sm font-extrabold uppercase tracking-wider">Мусорный бак</span>
+                        <span id="activeLuckBadge" class="text-[10px] font-mono-tech font-bold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-500 border border-amber-500/30">LUCK x1.0</span>
+                    </div>
+                    <span class="text-[10px] text-muted font-mono-tech" id="vibroStatusBadge">VIBRO: LOW</span>
+                </div>
+
+                <!-- Spacious Roulette Drum -->
+                <div class="roulette-viewport h-44 sm:h-52 inner-slot rounded-2xl border border-[#2c2c2c] flex items-center">
+                    <div id="roulettePointer" class="roulette-pointer"></div>
+                    <div id="rouletteTrack" class="roulette-track pl-4">
+                        <!-- Roulette cards injected here -->
+                    </div>
+                </div>
+
+                <!-- STAKE & LUCK BOOST PANEL (Money MD Multiplier + Up to 10 Materials) -->
+                <div class="mt-3.5 inner-slot border border-[#2c2c2c] rounded-2xl p-3 space-y-3">
+                    <!-- A) Boost Luck with MD Currency -->
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-bold text-muted flex items-center gap-1">
+                                <span>💸</span>
+                                <span data-i18n="moneyBoostLabel">Ставка удачи за MD:</span>
+                            </span>
+                            <span id="moneyBoostInfo" class="font-mono-tech font-bold text-amber-500">x1 (База)</span>
+                        </div>
+                        <div class="grid grid-cols-4 gap-1.5" id="moneyBoostButtons">
+                            <button onclick="setMoneyBoost(1)" data-mult="1" class="boost-mult-btn py-1.5 rounded-xl border text-xs font-mono-tech font-extrabold transition">x1</button>
+                            <button onclick="setMoneyBoost(2)" data-mult="2" class="boost-mult-btn py-1.5 rounded-xl border text-xs font-mono-tech font-extrabold transition">x2</button>
+                            <button onclick="setMoneyBoost(5)" data-mult="5" class="boost-mult-btn py-1.5 rounded-xl border text-xs font-mono-tech font-extrabold transition">x5</button>
+                            <button onclick="setMoneyBoost(10)" data-mult="10" class="boost-mult-btn py-1.5 rounded-xl border text-xs font-mono-tech font-extrabold transition">x10</button>
+                        </div>
+                    </div>
+
+                    <!-- B) Add up to 10 Inventory Materials to Boost Drop Chance -->
+                    <div class="pt-2 border-t border-[#2c2c2c] flex items-center justify-between gap-2">
+                        <div class="min-w-0">
+                            <div class="text-xs font-bold flex items-center gap-1.5">
+                                <span>🧪</span>
+                                <span data-i18n="matBoostLabel">Усиление материалами:</span>
+                                <span id="spinBoostMatCount" class="font-mono-tech text-emerald-500">0/10</span>
+                            </div>
+                            <div id="spinBoostBonusText" class="text-[10px] text-muted truncate">
+                                Добавь до 10 предметов со склада для повышения шанса редких
+                            </div>
+                        </div>
+                        <button onclick="openSpinBoostModal()" class="px-3 py-2 rounded-xl elevated-box hover:opacity-85 border text-xs font-bold shrink-0 transition active:scale-95">
+                            + <span data-i18n="selectBtn">Выбрать</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Spin Action Button -->
+                <div class="mt-3.5">
+                    <button id="spinBtn" onclick="startSpin()" class="w-full py-3.5 px-6 rounded-xl font-black text-sm sm:text-base uppercase tracking-wider text-white bg-gradient-to-r from-red-600 via-rose-600 to-amber-600 hover:brightness-110 shadow-lg shadow-red-600/25 transition transform active:scale-98 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5">
+                        <span data-i18n="spinBtn">КРУТИТЬ БАРАБАН</span>
+                        <span id="spinCostBadge" class="bg-black/35 px-2.5 py-0.5 rounded-lg font-mono-tech text-xs">100 MD</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Collapsible Case Contents Preview -->
+            <div class="surface-box border rounded-2xl p-3.5">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-muted" data-i18n="caseContents">Возможный дроп из этого кейса</h3>
+                    <button onclick="toggleDropList()" id="toggleDropBtn" class="px-3 py-1.5 rounded-lg elevated-box border text-xs font-bold hover:opacity-80 transition flex items-center gap-1.5">
+                        <span id="toggleDropIcon">🙈</span>
+                        <span id="toggleDropLabel" data-i18n="hideDrop">Скрыть дроп</span>
+                    </button>
+                </div>
+                <div id="caseContentsGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-3">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 2: STORAGE & CRAFT (COMBINED) ==================== -->
+        <section id="tab-storage" class="hidden space-y-4">
+            <!-- Sub-tabs: Storage vs Synthesizer Craft -->
+            <div class="grid grid-cols-2 gap-2 surface-box border p-1.5 rounded-2xl">
+                <button onclick="setStorageSubTab('inv')" id="subTabInvBtn" class="py-2 rounded-xl text-xs font-extrabold uppercase transition bg-red-600 text-white">
+                    🎒 <span data-i18n="subInv">Склад</span> (<span id="invTabBadge">0</span>)
+                </button>
+                <button onclick="setStorageSubTab('craft')" id="subTabCraftBtn" class="py-2 rounded-xl text-xs font-extrabold uppercase transition text-muted">
+                    ⚗️ <span data-i18n="subCraft">Крафт (до 10)</span>
+                </button>
+            </div>
+
+            <!-- SUB-VIEW A: INVENTORY -->
+            <div id="subview-inv" class="space-y-3">
+                <div class="surface-box border rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <h2 class="text-sm sm:text-base font-extrabold" data-i18n="invTitle">Твой склад материалов</h2>
+                        <p class="text-xs text-muted"><span data-i18n="invCount">Предметов:</span> <span id="invTotalCount" class="font-mono-tech font-bold">0</span></p>
+                    </div>
+                    <button onclick="sellAllItems()" class="px-3.5 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-rose-500 text-xs font-bold transition active:scale-95">
+                        <span data-i18n="sellAll">Продать всё</span> (<span id="sellAllSum" class="font-mono-tech">0</span> MD)
+                    </button>
+                </div>
+
+                <div id="inventoryGrid" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <!-- Inventory items -->
+                </div>
+            </div>
+
+            <!-- SUB-VIEW B: COMBINER / CRAFT (UP TO 10 ITEMS) -->
+            <div id="subview-craft" class="hidden space-y-4">
+                <div class="surface-box border rounded-2xl p-4 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h2 class="text-base font-extrabold" data-i18n="craftTitle">Синтезатор / Крафт</h2>
+                            <p class="text-xs text-muted" data-i18n="craftSub">Выбери до 10 материалов для повышения редкости</p>
+                        </div>
+                        <span class="font-mono-tech text-xs px-2.5 py-1 rounded-lg elevated-box border text-amber-500 font-bold">
+                            <span id="craftSlotCount">0</span> / 10
+                        </span>
+                    </div>
+
+                    <!-- 10 Craft Slots -->
+                    <div id="craftSlotsGrid" class="grid grid-cols-5 gap-2"></div>
+
+                    <!-- Target Rarity & % Odds -->
+                    <div class="inner-slot border border-[#2c2c2c] rounded-xl p-3 space-y-2">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-muted" data-i18n="targetRarity">Целевая редкость:</span>
+                            <span id="craftTargetRarity" class="font-bold">—</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-muted" data-i18n="successChance">Шанс успешного синтеза:</span>
+                            <span id="craftChanceText" class="font-mono-tech font-extrabold text-base text-emerald-500">0%</span>
+                        </div>
+                        <div class="w-full h-2.5 elevated-box rounded-full overflow-hidden">
+                            <div id="craftChanceBar" class="h-full bg-gradient-to-r from-amber-500 to-emerald-500 transition-all duration-300" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <button onclick="clearCraftSlots()" class="px-4 py-3 rounded-xl elevated-box border text-xs font-bold transition" data-i18n="clearBtn">Очистить</button>
+                        <button id="executeCraftBtn" onclick="executeCraft()" disabled class="flex-1 py-3 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:brightness-110 disabled:opacity-40 disabled:cursor-not-allowed font-extrabold text-xs sm:text-sm uppercase tracking-wider text-white shadow-lg transition active:scale-98" data-i18n="combineBtn">
+                            СКОМБИНИРОВАТЬ
+                        </button>
+                    </div>
+                </div>
+
+                <div class="surface-box border rounded-2xl p-3.5">
+                    <h3 class="text-xs font-bold uppercase tracking-wider text-muted mb-2.5" data-i18n="tapToAdd">Нажми на предмет, чтобы добавить в крафт</h3>
+                    <div id="craftInventoryGrid" class="grid grid-cols-3 sm:grid-cols-5 gap-2"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 3: INDEX / COLLECTION (100 ITEMS) ==================== -->
+        <section id="tab-index" class="hidden space-y-3">
+            <div class="surface-box border rounded-2xl p-3.5 space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-base font-extrabold" data-i18n="indexTitle">Индекс коллекции</h2>
+                            <span id="indexProgressBadge" class="font-mono-tech text-xs px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-500 font-bold">0 / 100</span>
+                        </div>
+                        <p class="text-xs text-muted mt-0.5" data-i18n="indexSub">Все 100 предметов: открытые цветные, ненайденные — в серой обложке</p>
+                    </div>
+
+                    <!-- Sort Selector -->
+                    <div class="flex items-center gap-1.5">
+                        <span class="text-xs text-muted">⇅</span>
+                        <select id="indexSortSelect" onchange="renderIndex()" class="elevated-box border text-xs font-bold rounded-xl px-2.5 py-2 focus:outline-none">
+                            <option value="alpha" data-i18n="sortAlpha">От А до Я (A–Z)</option>
+                            <option value="rarity" data-i18n="sortOrder">По порядку (Common → Rainbow)</option>
+                            <option value="newest" data-i18n="sortNewest">Самые новые (полученные)</option>
+                            <option value="collected_cat" data-i18n="sortCollectedCat">Собранные по категориям</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 5 Category Pills (Default: ALL) -->
+                <div class="flex gap-1.5 overflow-x-auto pb-1" id="indexCategoryPills">
+                    <button onclick="setIndexCategory('ALL')" data-cat="ALL" class="idx-cat-btn px-3 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap transition">
+                        🌐 <span data-i18n="catAll">Все (100)</span>
+                    </button>
+                    <button onclick="setIndexCategory('elements')" data-cat="elements" class="idx-cat-btn px-3 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap transition">
+                        ⚛️ <span data-i18n="catElements">Таб. Элементов</span>
+                    </button>
+                    <button onclick="setIndexCategory('metals')" data-cat="metals" class="idx-cat-btn px-3 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap transition">
+                        🔩 <span data-i18n="catMetals">Металлы</span>
+                    </button>
+                    <button onclick="setIndexCategory('minerals')" data-cat="minerals" class="idx-cat-btn px-3 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap transition">
+                        💎 <span data-i18n="catMinerals">Камни и минералы</span>
+                    </button>
+                    <button onclick="setIndexCategory('materials')" data-cat="materials" class="idx-cat-btn px-3 py-1.5 rounded-xl border text-xs font-bold whitespace-nowrap transition">
+                        🐊 <span data-i18n="catMaterials">Материалы</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Index Items Container -->
+            <div id="indexContainer" class="space-y-4">
+                <!-- Rendered by JS -->
+            </div>
+        </section>
+
+        <!-- ==================== TAB 4: TOP & QUESTS ==================== -->
+        <section id="tab-social" class="hidden space-y-4">
+            <!-- Honest First-Player Leaderboard -->
+            <div class="surface-box border rounded-2xl p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-base font-extrabold" data-i18n="topTitle">Таблица лидеров MendeleevDrop</h2>
+                        <p class="text-xs text-muted" data-i18n="topSub">Честный рейтинг игроков в реальном времени</p>
+                    </div>
+                    <span class="text-2xl">🏆</span>
+                </div>
+
+                <div class="rounded-2xl border border-amber-500/40 bg-gradient-to-r from-amber-500/15 via-yellow-500/10 to-amber-500/15 p-3 flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-xl shrink-0">👑</div>
+                    <div>
+                        <div class="text-xs sm:text-sm font-black text-amber-500" data-i18n="firstPlayerBanner">Ты самый первый кто в этой игре!</div>
+                        <div class="text-[11px] text-muted" data-i18n="firstPlayerSub">Других игроков пока нет. Начислен бонус первооткрывателя +10,000 MD!</div>
+                    </div>
+                </div>
+
+                <div id="leaderboardList" class="space-y-2"></div>
+            </div>
+
+            <!-- Quests -->
+            <div class="surface-box border rounded-2xl p-4 space-y-3">
+                <h2 class="text-base font-extrabold flex items-center gap-2">
+                    <span>🎯</span>
+                    <span data-i18n="questsTitle">Задания и бонусы</span>
+                </h2>
+                <div id="questsList" class="space-y-2.5"></div>
+            </div>
+        </section>
+
+        <!-- ==================== TAB 5: SETTINGS & ACCOUNT (Bottom-Right Slot) ==================== -->
+        <section id="tab-settings" class="hidden space-y-4">
+            <div class="surface-box border rounded-2xl p-4 space-y-4">
+                <h2 class="text-base font-extrabold flex items-center gap-2">
+                    <span>⚙️</span>
+                    <span data-i18n="settingsTitle">Настройки игры</span>
+                </h2>
+
+                <!-- Theme Switcher (YouTube Dark #0f0f0f vs Light #f9f9f9) -->
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-muted uppercase" data-i18n="themeLabel">Тема оформления</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="setTheme('dark')" id="themeBtnDark" class="py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-2">
+                            <span>🌑</span>
+                            <span data-i18n="themeDark">Тёмная (YouTube)</span>
+                        </button>
+                        <button onclick="setTheme('light')" id="themeBtnLight" class="py-2.5 px-3 rounded-xl border text-xs font-bold transition flex items-center justify-center gap-2">
+                            <span>☀️</span>
+                            <span data-i18n="themeLight">Светлая</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Language Switcher -->
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-muted uppercase" data-i18n="langLabel">Язык интерфейса / Language</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="setLanguage('ru')" id="langBtnRu" class="py-2.5 rounded-xl border text-xs font-bold transition">🇷🇺 Русский</button>
+                        <button onclick="setLanguage('en')" id="langBtnEn" class="py-2.5 rounded-xl border text-xs font-bold transition">🇬🇧 English</button>
+                    </div>
+                </div>
+
+                <!-- Vibration Strength Slider -->
+                <div class="space-y-2 pt-1">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-bold text-muted uppercase" data-i18n="vibroLabel">Сила вибрации при крутке</label>
+                        <span id="vibroValueText" class="font-mono-tech text-xs font-bold text-amber-500">Слабая (10 ms)</span>
+                    </div>
+                    <input id="vibroSlider" type="range" min="0" max="3" step="1" value="1" oninput="onVibroSliderChange(this.value)" class="w-full accent-red-600 cursor-pointer">
+                    <div class="flex justify-between text-[10px] text-muted font-semibold">
+                        <span data-i18n="vibroOff">Выкл</span>
+                        <span data-i18n="vibroLow">Слабая</span>
+                        <span data-i18n="vibroMed">Средняя</span>
+                        <span data-i18n="vibroHigh">Сильная</span>
+                    </div>
+                </div>
+
+                <!-- Rainbow Effects Toggle -->
+                <div class="flex items-center justify-between pt-2 border-t border-[#2c2c2c]">
+                    <div>
+                        <div class="text-xs sm:text-sm font-bold" data-i18n="rainbowFxTitle">Эффекты радуги (Rainbow FX)</div>
+                        <div class="text-[11px] text-muted" data-i18n="rainbowFxSub">Анимация радужного перелива на карточках и шансах</div>
+                    </div>
+                    <button id="rainbowToggleBtn" onclick="toggleRainbowFx()" class="w-12 h-7 rounded-full transition relative p-1 bg-emerald-500">
+                        <span id="rainbowToggleKnob" class="block w-5 h-5 rounded-full bg-white shadow transform translate-x-5 transition"></span>
+                    </button>
+                </div>
+
+                <!-- Sound Effects Toggle -->
+                <div class="flex items-center justify-between pt-2 border-t border-[#2c2c2c]">
+                    <div>
+                        <div class="text-xs sm:text-sm font-bold" data-i18n="soundFxTitle">Звуковые эффекты</div>
+                        <div class="text-[11px] text-muted" data-i18n="soundFxSub">Тики барабана и победные аккорды</div>
+                    </div>
+                    <button id="soundSettingsBtn" onclick="toggleSound()" class="w-12 h-7 rounded-full transition relative p-1 bg-emerald-500">
+                        <span id="soundSettingsKnob" class="block w-5 h-5 rounded-full bg-white shadow transform translate-x-5 transition"></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ACCOUNT BLOCK (Bottom of Settings) -->
+            <div class="surface-box border rounded-2xl p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                    <h3 class="text-sm font-extrabold uppercase tracking-wider flex items-center gap-2">
+                        <span>👤</span>
+                        <span data-i18n="accountTitle">Аккаунт игрока</span>
+                    </h3>
+                    <span class="font-mono-tech text-[11px] text-emerald-500 flex items-center gap-1">
+                        <span>●</span> <span data-i18n="autoSaved">Автосохранение</span>
+                    </span>
+                </div>
+
+                <div class="space-y-1.5">
+                    <label class="text-xs font-bold text-muted" data-i18n="nickLabel">Игровой никнейм (также меняется по клику на строку игрока сверху)</label>
+                    <div class="flex gap-2">
+                        <input id="nicknameInput" type="text" maxlength="18" placeholder="Введите ник..." class="flex-1 inner-slot border border-[#2c2c2c] rounded-xl px-3.5 py-2.5 text-sm focus:border-red-500 focus:outline-none">
+                        <button onclick="saveNicknameFromSettings()" class="px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs uppercase transition active:scale-95" data-i18n="saveBtn">
+                            Сохранить
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 pt-1 text-center">
+                    <div class="inner-slot border border-[#2c2c2c] rounded-xl p-2">
+                        <div class="text-[10px] text-muted" data-i18n="statSpins">Круток</div>
+                        <div id="statSpinsVal" class="font-mono-tech font-bold text-sm">0</div>
+                    </div>
+                    <div class="inner-slot border border-[#2c2c2c] rounded-xl p-2">
+                        <div class="text-[10px] text-muted" data-i18n="statIndex">Индекс</div>
+                        <div id="statIndexVal" class="font-mono-tech font-bold text-sm">0/100</div>
+                    </div>
+                    <div class="inner-slot border border-[#2c2c2c] rounded-xl p-2">
+                        <div class="text-[10px] text-muted" data-i18n="statVersion">Версия</div>
+                        <div id="settingsVersionVal" class="font-mono-tech font-bold text-sm text-amber-500">Beta 1.2v</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BIG RED SQUARE: WIPE PROGRESS WITH INLINE DOUBLE CONFIRMATION -->
+            <div id="redDangerSquare" class="rounded-2xl border-2 border-red-600 bg-red-600/10 p-5 space-y-3.5 text-center shadow-lg shadow-red-900/15 transition-all">
+                <div class="text-xs font-black uppercase tracking-widest text-red-500" data-i18n="dangerZoneTitle">ОПАСНАЯ ЗОНА • СБРОС ПРОГРЕССА</div>
+                <p id="dangerZoneDesc" class="text-xs text-muted max-w-md mx-auto" data-i18n="dangerZoneDesc">
+                    Полное удаление сохранения: обнулятся баланс MD, весь склад, Индекс 100 материалов и статистика.
+                </p>
+
+                <!-- Step 1 Button -->
+                <div id="wipeStep1Box">
+                    <button onclick="armWipeStep2()" class="w-full py-4 px-6 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black text-sm sm:text-base uppercase tracking-wider shadow-xl shadow-red-600/30 transition transform active:scale-98" data-i18n="wipeBtn">
+                        СТЕРЕТЬ ПРОГРЕСС
+                    </button>
+                </div>
+
+                <!-- Step 2 Inline Confirmation inside the Red Square -->
+                <div id="wipeStep2Box" class="hidden space-y-3 pt-1">
+                    <div class="p-3 rounded-xl bg-red-600/20 border border-red-500 text-xs sm:text-sm font-extrabold text-red-400" data-i18n="wipeConfirmPrompt">
+                        Вы уверены? Нажмите еще раз для полного удаления!
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="cancelWipeStep2()" class="py-3.5 rounded-xl elevated-box border text-xs font-bold uppercase" data-i18n="cancelBtn">
+                            Отмена
+                        </button>
+                        <button onclick="executeFullWipe()" class="py-3.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-xs sm:text-sm font-black uppercase shadow-lg animate-pulse" data-i18n="wipeFinalBtn">
+                            УДАЛИТЬ ВСЁ НАВСЕГДА
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ==================== VERSION TAG FOOTER ==================== -->
+    <div class="fixed bottom-16 right-3 z-20 pointer-events-none">
+        <span id="cornerVersionLabel" class="text-[10px] font-mono-tech text-muted surface-box border px-1.5 py-0.5 rounded">Beta 1.2v</span>
+    </div>
+
+    <!-- ==================== BOTTOM NAVIGATION BAR ==================== -->
+    <nav class="fixed bottom-0 inset-x-0 z-30 border-t border-[#2c2c2c] px-1.5 py-1.5 backdrop-blur-lg" style="background-color: var(--nav-bg);">
+        <div class="max-w-4xl mx-auto grid grid-cols-5 gap-1">
+            <button onclick="switchTab('drop')" data-tab="drop" class="nav-btn active flex flex-col items-center justify-center py-1.5 rounded-xl text-red-500 bg-red-500/10 transition">
+                <span class="text-lg leading-none">🎰</span>
+                <span class="text-[10px] font-bold mt-1" data-i18n="navDrop">Рулетка</span>
+            </button>
+            <button onclick="switchTab('storage')" data-tab="storage" class="nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-muted transition">
+                <span class="text-lg leading-none">🎒</span>
+                <span class="text-[10px] font-bold mt-1" data-i18n="navStorage">Склад / Крафт</span>
+            </button>
+            <button onclick="switchTab('index')" data-tab="index" class="nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-muted transition">
+                <span class="text-lg leading-none">📖</span>
+                <span class="text-[10px] font-bold mt-1" data-i18n="navIndex">Индекс</span>
+            </button>
+            <button onclick="switchTab('social')" data-tab="social" class="nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-muted transition">
+                <span class="text-lg leading-none">🏆</span>
+                <span class="text-[10px] font-bold mt-1" data-i18n="navSocial">Топ / Задания</span>
+            </button>
+            <button onclick="switchTab('settings')" data-tab="settings" class="nav-btn flex flex-col items-center justify-center py-1.5 rounded-xl text-muted transition">
+                <span class="text-lg leading-none">⚙️</span>
+                <span class="text-[10px] font-bold mt-1" data-i18n="navSettings">Настройки</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ==================== DIRECT PLAYER PROFILE MODAL (Clicked from Header) ==================== -->
+    <div id="profileModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="w-full max-w-sm surface-box border rounded-3xl p-5 space-y-4 shadow-2xl">
+            <div class="flex items-center justify-between">
+                <h3 class="text-base font-black flex items-center gap-2">
+                    <span>🪪</span>
+                    <span data-i18n="profileModalTitle">Профиль игрока</span>
+                </h3>
+                <button onclick="closeProfileModal()" class="w-8 h-8 rounded-full elevated-box flex items-center justify-center text-xs font-bold">✕</button>
+            </div>
+
+            <!-- Avatar Picker -->
+            <div>
+                <label class="text-[11px] font-bold text-muted uppercase block mb-1.5" data-i18n="chooseAvatar">Выбери значок профиля</label>
+                <div class="grid grid-cols-6 gap-1.5" id="avatarPickerGrid">
+                    <!-- Avatars rendered by JS -->
+                </div>
+            </div>
+
+            <!-- Nickname Input -->
+            <div>
+                <label class="text-[11px] font-bold text-muted uppercase block mb-1" data-i18n="nickInputLabel">Игровой никнейм</label>
+                <input id="modalNickInput" type="text" maxlength="18" class="w-full inner-slot border border-[#2c2c2c] rounded-xl px-3.5 py-2.5 text-sm font-bold focus:border-amber-500 focus:outline-none">
+            </div>
+
+            <!-- Player ID & Quick Stats -->
+            <div class="inner-slot border border-[#2c2c2c] rounded-xl p-3 space-y-1.5 text-xs">
+                <div class="flex justify-between">
+                    <span class="text-muted">Player ID:</span>
+                    <span id="modalPlayerIdText" class="font-mono-tech font-bold text-amber-500">#00001 (Pioneer)</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-muted" data-i18n="balanceLabel">Баланс:</span>
+                    <span id="modalBalanceText" class="font-mono-tech font-bold">10,000 MD</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-muted" data-i18n="indexDiscoveredLabel">Собрано в Индексе:</span>
+                    <span id="modalIndexText" class="font-mono-tech font-bold text-emerald-500">0 / 100</span>
+                </div>
+            </div>
+
+            <button onclick="saveProfileFromModal()" class="w-full py-3 rounded-xl bg-gradient-to-r from-red-600 to-amber-600 text-white font-black text-xs uppercase tracking-wider shadow-lg active:scale-98" data-i18n="saveProfileBtn">
+                Сохранить профиль
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== SPIN MATERIAL BOOST MODAL (Select up to 10 items) ==================== -->
+    <div id="spinBoostModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="w-full max-w-md surface-box border rounded-3xl p-5 space-y-3.5 shadow-2xl max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h3 class="text-base font-black" data-i18n="boostModalTitle">Усиление крутки материалами</h3>
+                    <p class="text-[11px] text-muted" data-i18n="boostModalSub">Выбери до 10 предметов (сгорят при крутке ради повышения шанса)</p>
+                </div>
+                <span id="modalBoostCount" class="font-mono-tech text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-500">0/10</span>
+            </div>
+
+            <div id="spinBoostInvGrid" class="grid grid-cols-3 gap-2 overflow-y-auto flex-1 pr-1 min-h-[140px]">
+                <!-- Selectable inventory items -->
+            </div>
+
+            <div class="flex gap-2 pt-2 border-t border-[#2c2c2c]">
+                <button onclick="clearSpinBoostItems()" class="px-4 py-2.5 rounded-xl elevated-box border text-xs font-bold" data-i18n="clearBtn">Очистить</button>
+                <button onclick="closeSpinBoostModal()" class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs uppercase" data-i18n="doneBtn">Готово</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== WIN / RESULT MODAL ==================== -->
+    <div id="winModal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div id="winModalCard" class="w-full max-w-sm rounded-3xl border-2 p-6 text-center space-y-4 transform transition-all scale-100 surface-box relative">
+            <div id="winItemChanceBadge" class="absolute top-4 right-5 font-mono-tech text-xs font-black">0%</div>
+            <div class="text-xs font-mono-tech uppercase tracking-widest text-muted" id="winModalSubtitle">NEW DROP!</div>
+            <div id="winItemVisual" class="w-24 h-24 mx-auto rounded-2xl flex flex-col items-center justify-center border border-[#2c2c2c] inner-slot shadow-inner"></div>
+            <div>
+                <div id="winItemRarity" class="text-xs uppercase tracking-widest font-extrabold mb-1">Legendary</div>
+                <h3 id="winItemName" class="text-xl font-black">Gold (Au)</h3>
+                <p id="winItemDesc" class="text-xs text-muted mt-1">Благородный металл</p>
+            </div>
+            <div class="inner-slot rounded-xl py-2 px-4 inline-flex items-center gap-1.5 border border-[#2c2c2c]">
+                <span class="text-xs text-muted" data-i18n="valueLabel">Цена:</span>
+                <span id="winItemPrice" class="font-mono-tech font-bold text-amber-500">500 MD</span>
+            </div>
+            <div class="grid grid-cols-2 gap-2 pt-2">
+                <button onclick="sellWonItem()" class="py-3 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-500 font-bold text-xs uppercase transition" data-i18n="sellNow">Продать</button>
+                <button onclick="closeWinModal()" class="py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs uppercase transition" data-i18n="keepItem">В склад</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== FIRST LAUNCH WELCOME MODAL ==================== -->
+    <div id="welcomeModal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="w-full max-w-sm surface-box border rounded-3xl p-6 space-y-4 shadow-2xl text-center">
+            <div class="w-14 h-14 mx-auto rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-2xl">👑</div>
+            <h3 class="text-lg font-black" data-i18n="welcomeTitle">Добро пожаловать в MendeleevDrop!</h3>
+            <p class="text-xs text-muted" data-i18n="welcomeDesc">
+                Ты первый игрок в таблице лидеров! Введи свой никнейм, чтобы забрать стартовый бонус +10,000 MD.
+            </p>
+            <input id="welcomeNickInput" type="text" maxlength="18" placeholder="Твой никнейм..." class="w-full inner-slot border border-[#2c2c2c] rounded-xl px-4 py-3 text-sm text-center font-bold focus:border-amber-500 focus:outline-none">
+            <button onclick="confirmWelcomeNick()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-amber-500 to-red-600 text-white font-black text-sm uppercase tracking-wider shadow-lg active:scale-98" data-i18n="claimStartBtn">
+                Начать (+10,000 MD)
+            </button>
+        </div>
+    </div>
+
+    <!-- ==================== TOAST NOTIFICATION ==================== -->
+    <div id="toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 hidden elevated-box border text-xs font-bold px-4 py-2.5 rounded-full shadow-xl transition-opacity"></div>
+
+    <script>
+        /* =====================================================================
+           VERSION_TAG: Beta 1.2v
+           Update this constant whenever you release a new update!
+           ===================================================================== */
+        const APP_VERSION = "Beta 1.2v";
+        const STORAGE_KEY = "mendeleev_drop_save_v1_2";
+
+        const AVATARS = ["⚗️", "☢️", "💎", "🐊", "🐉", "👑", "🔥", "⚡", "🧪", "🧬", "🛰️", "🦾"];
+
+        // 7 Rarity Levels (Strictly English names per specification)
+        const RARITIES = {
+            Common:    { label: "Common",     order: 1, colorClass: "rarity-Common",    textClass: "text-rarity-Common" },
+            Rare:      { label: "Rare",       order: 2, colorClass: "rarity-Rare",      textClass: "text-rarity-Rare" },
+            SuperRare: { label: "Super Rare", order: 3, colorClass: "rarity-SuperRare", textClass: "text-rarity-SuperRare" },
+            Epic:      { label: "Epic",       order: 4, colorClass: "rarity-Epic",      textClass: "text-rarity-Epic" },
+            Legendary: { label: "Legendary",  order: 5, colorClass: "rarity-Legendary", textClass: "text-rarity-Legendary" },
+            Mythic:    { label: "Mythic",     order: 6, colorClass: "rarity-Mythic",    textClass: "text-rarity-Mythic" },
+            Rainbow:   { label: "Rainbow",    order: 7, colorClass: "rarity-Rainbow",   textClass: "text-rarity-Rainbow" }
+        };
+
+        /* =====================================================================
+           EXACTLY 100 UNIQUE ITEMS ACROSS 4 CATEGORIES:
+           1. 'elements'  (30 items — Таб. Элементов)
+           2. 'metals'    (25 items — Металлы и сплавы)
+           3. 'minerals'  (25 items — Камни и минералы)
+           4. 'materials' (20 items — Материалы и органика)
+           Total = 100 items!
+           ===================================================================== */
+        const ITEMS_DB = [
+            // ================= 1. ELEMENTS (30 items) =================
+            { id: "el_h",   cat: "elements", num: 1,   symbol: "H",   nameRu: "Водород",         nameEn: "Hydrogen",         rarity: "Common",    price: 25,     descRu: "Первый элемент таблицы Менделеева", descEn: "First element of the Periodic Table" },
+            { id: "el_he",  cat: "elements", num: 2,   symbol: "He",  nameRu: "Гелий",           nameEn: "Helium",           rarity: "Common",    price: 30,     descRu: "Сверхлёгкий инертный газ", descEn: "Ultralight noble gas" },
+            { id: "el_c",   cat: "elements", num: 6,   symbol: "C",   nameRu: "Углерод",         nameEn: "Carbon",           rarity: "Common",    price: 35,     descRu: "Основа всей органической жизни", descEn: "Backbone of organic chemistry" },
+            { id: "el_n",   cat: "elements", num: 7,   symbol: "N",   nameRu: "Азот",            nameEn: "Nitrogen",         rarity: "Common",    price: 28,     descRu: "78% земной атмосферы", descEn: "78% of Earth's atmosphere" },
+            { id: "el_o",   cat: "elements", num: 8,   symbol: "O",   nameRu: "Кислород",        nameEn: "Oxygen",           rarity: "Common",    price: 32,     descRu: "Жизненно важный окислитель", descEn: "Essential life-supporting gas" },
+            { id: "el_si",  cat: "elements", num: 14,  symbol: "Si",  nameRu: "Кремний",         nameEn: "Silicon",          rarity: "Common",    price: 45,     descRu: "Фундамент всей микроэлектроники", descEn: "Core of modern microchips" },
+            { id: "el_p",   cat: "elements", num: 15,  symbol: "P",   nameRu: "Фосфор",          nameEn: "Phosphorus",       rarity: "Common",    price: 40,     descRu: "Светится в темноте при окислении", descEn: "Glows faintly in the dark" },
+            { id: "el_s",   cat: "elements", num: 16,  symbol: "S",   nameRu: "Сера",            nameEn: "Sulfur",           rarity: "Common",    price: 36,     descRu: "Ярко-жёлтый вулканический неметалл", descEn: "Bright yellow volcanic nonmetal" },
+            { id: "el_f",   cat: "elements", num: 9,   symbol: "F",   nameRu: "Фтор",            nameEn: "Fluorine",         rarity: "Rare",      price: 110,    descRu: "Самый активный неметалл-окислитель", descEn: "Most reactive halogen gas" },
+            { id: "el_cl",  cat: "elements", num: 17,  symbol: "Cl",  nameRu: "Хлор",            nameEn: "Chlorine",         rarity: "Rare",      price: 95,     descRu: "Тяжёлый желто-зелёный газ", descEn: "Dense yellow-green gas" },
+            { id: "el_ar",  cat: "elements", num: 18,  symbol: "Ar",  nameRu: "Аргон",           nameEn: "Argon",            rarity: "Rare",      price: 120,    descRu: "Защитный газ для сварки и ламп", descEn: "Shielding noble gas" },
+            { id: "el_br",  cat: "elements", num: 35,  symbol: "Br",  nameRu: "Бром",            nameEn: "Bromine",          rarity: "Rare",      price: 140,    descRu: "Единственный жидкий неметалл", descEn: "Only liquid nonmetal at room temp" },
+            { id: "el_ne",  cat: "elements", num: 10,  symbol: "Ne",  nameRu: "Неон",            nameEn: "Neon",             rarity: "SuperRare", price: 320,    descRu: "Пылает алым светом в разряде", descEn: "Glows crimson-orange in discharge" },
+            { id: "el_se",  cat: "elements", num: 34,  symbol: "Se",  nameRu: "Селен",           nameEn: "Selenium",         rarity: "SuperRare", price: 340,    descRu: "Полупроводник для солнечных панелей", descEn: "Photovoltaic semiconductor element" },
+            { id: "el_kr",  cat: "elements", num: 36,  symbol: "Kr",  nameRu: "Криптон",         nameEn: "Krypton",          rarity: "SuperRare", price: 380,    descRu: "Редкий газ для мощных лазеров", descEn: "Rare gas for high-power lasers" },
+            { id: "el_i",   cat: "elements", num: 53,  symbol: "I",   nameRu: "Йод",             nameEn: "Iodine",           rarity: "SuperRare", price: 310,    descRu: "Возгоняется в фиолетовый пар", descEn: "Sublimes into violet vapor" },
+            { id: "el_xe",  cat: "elements", num: 54,  symbol: "Xe",  nameRu: "Ксенон",          nameEn: "Xenon",            rarity: "Epic",      price: 950,    descRu: "Топливо для космических ионных двигателей", descEn: "Propellant for ion thrusters" },
+            { id: "el_te",  cat: "elements", num: 52,  symbol: "Te",  nameRu: "Теллур",          nameEn: "Tellurium",        rarity: "Epic",      price: 890,    descRu: "Редчайший металлоид земной коры", descEn: "Extremely rare metalloid" },
+            { id: "el_rn",  cat: "elements", num: 86,  symbol: "Rn",  nameRu: "Радон",           nameEn: "Radon",            rarity: "Epic",      price: 1100,   descRu: "Тяжёлый радиоактивный благородный газ", descEn: "Heavy radioactive noble gas" },
+            { id: "el_u",   cat: "elements", num: 92,  symbol: "U",   nameRu: "Уран-235",        nameEn: "Uranium-235",      rarity: "Legendary", price: 3200,   descRu: "Делящийся изотоп атомных реакторов", descEn: "Fissile nuclear reactor fuel" },
+            { id: "el_th",  cat: "elements", num: 90,  symbol: "Th",  nameRu: "Торий",           nameEn: "Thorium",          rarity: "Legendary", price: 2900,   descRu: "Энергетический актиноид будущего", descEn: "Next-gen nuclear actinide" },
+            { id: "el_ra",  cat: "elements", num: 88,  symbol: "Ra",  nameRu: "Радий",           nameEn: "Radium",           rarity: "Legendary", price: 3600,   descRu: "Светящийся элемент Марии Кюри", descEn: "Luminescent element of Marie Curie" },
+            { id: "el_pu",  cat: "elements", num: 94,  symbol: "Pu",  nameRu: "Плутоний-239",    nameEn: "Plutonium-239",    rarity: "Mythic",    price: 12500,  descRu: "Сверхтяжёлый искусственный изотоп", descEn: "Synthetic heavy transuranic isotope" },
+            { id: "el_cf",  cat: "elements", num: 98,  symbol: "Cf",  nameRu: "Калифорний-252",  nameEn: "Californium-252",  rarity: "Mythic",    price: 18000,  descRu: "Один из самых дорогих элементов в мире", descEn: "One of the priciest elements on Earth" },
+            { id: "el_am",  cat: "elements", num: 95,  symbol: "Am",  nameRu: "Америций",        nameEn: "Americium",        rarity: "Mythic",    price: 14000,  descRu: "Синтетический радиоактивный актиноид", descEn: "Synthetic radioactive actinide" },
+            { id: "el_og",  cat: "elements", num: 118, symbol: "Og",  nameRu: "Оганесон",        nameEn: "Oganesson",        rarity: "Rainbow",   price: 65000,  descRu: "118-й элемент, венец таблицы Менделеева", descEn: "Element 118, pinnacle of the Periodic Table" },
+            { id: "el_ts",  cat: "elements", num: 117, symbol: "Ts",  nameRu: "Теннессин",       nameEn: "Tennessine",       rarity: "Rainbow",   price: 58000,  descRu: "Сверхтяжёлый галоген 7-го периода", descEn: "Superheavy period-7 halogen" },
+            { id: "el_mc",  cat: "elements", num: 115, symbol: "Mc",  nameRu: "Московий",        nameEn: "Moscovium",        rarity: "Rainbow",   price: 62000,  descRu: "Остров стабильности сверхтяжёлых ядер", descEn: "Island of stability superheavy element" },
+            { id: "el_anti",cat: "elements", num: 0,   symbol: "H̄",   nameRu: "Антиводород",     nameEn: "Antihydrogen",     rarity: "Rainbow",   price: 95000,  descRu: "Антиматерия, аннигилирующая при контакте", descEn: "Pure antimatter trapped in magnetic field" },
+            { id: "el_neu", cat: "elements", num: 999, symbol: "Nt",  nameRu: "Нейтроний",       nameEn: "Neutronium",       rarity: "Rainbow",   price: 120000, descRu: "Сверхплотное вещество нейтронных звёзд", descEn: "Ultra-dense matter of neutron stars" },
+
+            // ================= 2. METALS & ALLOYS (25 items) =================
+            { id: "mt_al",  cat: "metals", icon: "🔩", symbol: "Al",   nameRu: "Алюминий",        nameEn: "Aluminum",         rarity: "Common",    price: 42,     descRu: "Лёгкий крылатый металл", descEn: "Lightweight aviation metal" },
+            { id: "mt_sn",  cat: "metals", icon: "🥫", symbol: "Sn",   nameRu: "Олово",           nameEn: "Tin",              rarity: "Common",    price: 38,     descRu: "Мягкий легкоплавкий металл", descEn: "Soft low-melting metal" },
+            { id: "mt_pb",  cat: "metals", icon: "🧱", symbol: "Pb",   nameRu: "Свинец",          nameEn: "Lead",             rarity: "Common",    price: 48,     descRu: "Тяжёлая защита от излучения", descEn: "Heavy radiation shielding metal" },
+            { id: "mt_zn",  cat: "metals", icon: "⚙️", symbol: "Zn",   nameRu: "Цинк",            nameEn: "Zinc",             rarity: "Common",    price: 44,     descRu: "Антикоррозийный металл", descEn: "Anti-corrosion galvanizing metal" },
+            { id: "mt_fe",  cat: "metals", icon: "⛓️", symbol: "Fe",   nameRu: "Железо",          nameEn: "Iron",             rarity: "Rare",      price: 115,    descRu: "Основа индустриальной эпохи", descEn: "Backbone of heavy industry" },
+            { id: "mt_cu",  cat: "metals", icon: "🔌", symbol: "Cu",   nameRu: "Медь",            nameEn: "Copper",           rarity: "Rare",      price: 130,    descRu: "Лучший проводник тока и тепла", descEn: "Prime electrical conductor" },
+            { id: "mt_brz", cat: "metals", icon: "🛡️", symbol: "BRZ",  nameRu: "Бронза",          nameEn: "Bronze",           rarity: "Rare",      price: 145,    descRu: "Классический сплав меди и олова", descEn: "Classic copper-tin alloy" },
+            { id: "mt_brs", cat: "metals", icon: "📯", symbol: "BRS",  nameRu: "Латунь",          nameEn: "Brass",            rarity: "Rare",      price: 140,    descRu: "Золотистый сплав меди и цинка", descEn: "Golden copper-zinc alloy" },
+            { id: "mt_stl", cat: "metals", icon: "🗡️", symbol: "STL",  nameRu: "Легированная сталь",nameEn: "Alloy Steel",     rarity: "Rare",      price: 160,    descRu: "Закалённый железоуглеродистый сплав", descEn: "Hardened carbon-iron alloy" },
+            { id: "mt_ti",  cat: "metals", icon: "🚀", symbol: "Ti",   nameRu: "Титан",           nameEn: "Titanium",         rarity: "SuperRare", price: 360,    descRu: "Сверхлёгкий и прочный металл ракет", descEn: "Aerospace-grade strong metal" },
+            { id: "mt_cr",  cat: "metals", icon: "🪞", symbol: "Cr",   nameRu: "Хром",            nameEn: "Chromium",         rarity: "SuperRare", price: 330,    descRu: "Зеркальный сверхтвёрдый металл", descEn: "Mirror-finish hard metal" },
+            { id: "mt_co",  cat: "metals", icon: "🧲", symbol: "Co",   nameRu: "Кобальт",         nameEn: "Cobalt",           rarity: "SuperRare", price: 350,    descRu: "Магнитный металл жаропрочных сплавов", descEn: "Magnetic superalloy metal" },
+            { id: "mt_ag",  cat: "metals", icon: "🥈", symbol: "Ag",   nameRu: "Серебро",         nameEn: "Silver",           rarity: "SuperRare", price: 410,    descRu: "Благородный драгоценный металл", descEn: "Precious noble metal" },
+            { id: "mt_dur", cat: "metals", icon: "✈️", symbol: "DUR",  nameRu: "Дюралюминий",     nameEn: "Duralumin",        rarity: "SuperRare", price: 370,    descRu: "Авиационный высокопрочный сплав", descEn: "High-strength aircraft alloy" },
+            { id: "mt_au",  cat: "metals", icon: "🥇", symbol: "Au",   nameRu: "Чистое золото",   nameEn: "Pure Gold",        rarity: "Epic",      price: 1050,   descRu: "Вечный эталон ценности", descEn: "Timeless standard of wealth" },
+            { id: "mt_w",   cat: "metals", icon: "💡", symbol: "W",    nameRu: "Вольфрам",        nameEn: "Tungsten",         rarity: "Epic",      price: 980,    descRu: "Рекордсмен по температуре плавления", descEn: "Highest melting point of all metals" },
+            { id: "mt_hg",  cat: "metals", icon: "💧", symbol: "Hg",   nameRu: "Ртуть",           nameEn: "Mercury",          rarity: "Epic",      price: 920,    descRu: "Тяжёлый жидкий металл", descEn: "Dense liquid metal" },
+            { id: "mt_ga",  cat: "metals", icon: "🫠", symbol: "Ga",   nameRu: "Галлий",          nameEn: "Gallium",          rarity: "Epic",      price: 880,    descRu: "Тает от тепла человеческой руки", descEn: "Melts in your warm palm" },
+            { id: "mt_pt",  cat: "metals", icon: "💍", symbol: "Pt",   nameRu: "Платина",         nameEn: "Platinum",         rarity: "Legendary", price: 3100,   descRu: "Редчайший платиновый металл", descEn: "Ultra-rare noble metal" },
+            { id: "mt_os",  cat: "metals", icon: "🏋️", symbol: "Os",   nameRu: "Осмий",           nameEn: "Osmium",           rarity: "Legendary", price: 3800,   descRu: "Самый плотный металл на Земле", descEn: "Densest naturally occurring metal" },
+            { id: "mt_ir",  cat: "metals", icon: "☄️", symbol: "Ir",   nameRu: "Иридий",          nameEn: "Iridium",          rarity: "Legendary", price: 3500,   descRu: "Метеоритный сверхстойкий металл", descEn: "Meteoritic corrosion-proof metal" },
+            { id: "mt_mith",cat: "metals", icon: "⚔️", symbol: "MTH",  nameRu: "Мифрил",          nameEn: "Mithril",          rarity: "Mythic",    price: 14500,  descRu: "Лёгкий как перо, твёрже алмаза", descEn: "Light as a feather, harder than diamond" },
+            { id: "mt_adam",cat: "metals", icon: "🦾", symbol: "ADM",  nameRu: "Адамантий",       nameEn: "Adamantium",       rarity: "Mythic",    price: 16500,  descRu: "Неразрушимый легендарный сплав", descEn: "Virtually indestructible alloy" },
+            { id: "mt_vib", cat: "metals", icon: "🔮", symbol: "VIB",  nameRu: "Вибраниум",       nameEn: "Vibranium",        rarity: "Rainbow",   price: 72000,  descRu: "Поглощает любую кинетическую энергию", descEn: "Absorbs all kinetic vibrations" },
+            { id: "mt_ori", cat: "metals", icon: "🌞", symbol: "ORI",  nameRu: "Орихалк",         nameEn: "Orichalcum",       rarity: "Rainbow",   price: 84000,  descRu: "Мифический солнечный металл Атлантиды", descEn: "Mythical solar metal of Atlantis" },
+
+            // ================= 3. MINERALS & STONES (25 items) =================
+            { id: "mn_grn", cat: "minerals", icon: "🪨", symbol: "GRN", nameRu: "Гранит",         nameEn: "Granite",          rarity: "Common",    price: 30,     descRu: "Твёрдая магматическая порода", descEn: "Hard igneous rock" },
+            { id: "mn_bas", cat: "minerals", icon: "🌋", symbol: "BAS", nameRu: "Базальт",        nameEn: "Basalt",           rarity: "Common",    price: 34,     descRu: "Застывшая вулканическая лава", descEn: "Cooled volcanic lava stone" },
+            { id: "mn_fln", cat: "minerals", icon: "🔥", symbol: "FLN", nameRu: "Кремень",        nameEn: "Flint",            rarity: "Common",    price: 38,     descRu: "Высекает искры при ударе", descEn: "Strikes sparks against steel" },
+            { id: "mn_lim", cat: "minerals", icon: "🐚", symbol: "LIM", nameRu: "Известняк",      nameEn: "Limestone",        rarity: "Common",    price: 26,     descRu: "Осадочный карбонатный камень", descEn: "Sedimentary carbonate stone" },
+            { id: "mn_qtz", cat: "minerals", icon: "🤍", symbol: "QTZ", nameRu: "Горный кварц",   nameEn: "Clear Quartz",     rarity: "Rare",      price: 125,    descRu: "Прозрачный пьезоэлектрический кристалл", descEn: "Clear piezoelectric crystal" },
+            { id: "mn_pyr", cat: "minerals", icon: "✨", symbol: "PYR", nameRu: "Пирит",          nameEn: "Pyrite",           rarity: "Rare",      price: 110,    descRu: "«Золото дураков» с кубическими гранями", descEn: "Fool's gold with cubic crystals" },
+            { id: "mn_mal", cat: "minerals", icon: "🟢", symbol: "MAL", nameRu: "Малахит",        nameEn: "Malachite",        rarity: "Rare",      price: 150,    descRu: "Узорчатый зелёный уральский минерал", descEn: "Banded green copper mineral" },
+            { id: "mn_lap", cat: "minerals", icon: "🔵", symbol: "LAP", nameRu: "Лазурит",        nameEn: "Lapis Lazuli",     rarity: "Rare",      price: 155,    descRu: "Небесно-синий камень древних царей", descEn: "Deep celestial blue gemstone" },
+            { id: "mn_ame", cat: "minerals", icon: "🟣", symbol: "AME", nameRu: "Аметист",        nameEn: "Amethyst",         rarity: "SuperRare", price: 340,    descRu: "Фиолетовая разновидность кварца", descEn: "Violet variety of quartz" },
+            { id: "mn_top", cat: "minerals", icon: "🟡", symbol: "TOP", nameRu: "Имперский топаз",nameEn: "Imperial Topaz",   rarity: "SuperRare", price: 390,    descRu: "Золотисто-медовый драгоценный камень", descEn: "Golden-amber precious gem" },
+            { id: "mn_jad", cat: "minerals", icon: "🐉", symbol: "JAD", nameRu: "Нефрит",         nameEn: "Imperial Jade",    rarity: "SuperRare", price: 375,    descRu: "Сверхвязкий священный камень Востока", descEn: "Tough sacred green stone" },
+            { id: "mn_tur", cat: "minerals", icon: "🩵", symbol: "TUR", nameRu: "Бирюза",         nameEn: "Turquoise",        rarity: "SuperRare", price: 330,    descRu: "Небесно-бирюзовый самоцвет", descEn: "Sky-blue mineral gemstone" },
+            { id: "mn_obs", cat: "minerals", icon: "🖤", symbol: "OBS", nameRu: "Обсидиан",       nameEn: "Obsidian",         rarity: "Epic",      price: 960,    descRu: "Острейшее чёрное вулканическое стекло", descEn: "Razor-sharp volcanic black glass" },
+            { id: "mn_emr", cat: "minerals", icon: "❇️", symbol: "EMR", nameRu: "Изумруд",        nameEn: "Emerald",          rarity: "Epic",      price: 1150,   descRu: "Драгоценный зелёный берилл", descEn: "Precious vivid green beryl" },
+            { id: "mn_opl", cat: "minerals", icon: "🌈", symbol: "OPL", nameRu: "Огненный опал",  nameEn: "Fire Opal",        rarity: "Epic",      price: 1080,   descRu: "Переливается всеми цветами спектра", descEn: "Displays vibrant play-of-color" },
+            { id: "mn_rby", cat: "minerals", icon: "♦️", symbol: "RBY", nameRu: "Кровавый рубин", nameEn: "Blood Ruby",       rarity: "Legendary", price: 3300,   descRu: "Пылающий драгоценный корунд", descEn: "Crimson gemstone corundum" },
+            { id: "mn_sph", cat: "minerals", icon: "🔷", symbol: "SPH", nameRu: "Звёздный сапфир",nameEn: "Star Sapphire",    rarity: "Legendary", price: 3450,   descRu: "Синий корунд с эффектом астеризма", descEn: "Blue corundum with star reflection" },
+            { id: "mn_dia", cat: "minerals", icon: "💠", symbol: "DIA", nameRu: "Чистый алмаз",   nameEn: "Flawless Diamond", rarity: "Legendary", price: 4100,   descRu: "10 из 10 по шкале твёрдости Мооса", descEn: "Peak 10/10 Mohs hardness" },
+            { id: "mn_alx", cat: "minerals", icon: "🔮", symbol: "ALX", nameRu: "Александрит",    nameEn: "Alexandrite",      rarity: "Mythic",    price: 13500,  descRu: "Меняет цвет с изумрудного на рубиновый", descEn: "Color-changing emerald-to-ruby gem" },
+            { id: "mn_blk", cat: "minerals", icon: "🎱", symbol: "CAR", nameRu: "Чёрный алмаз",   nameEn: "Black Carbonado",  rarity: "Mythic",    price: 15500,  descRu: "Космический алмаз из глубин космоса", descEn: "Cosmic diamond of interstellar origin" },
+            { id: "mn_met", cat: "minerals", icon: "🌠", symbol: "MET", nameRu: "Лунный метеорит",nameEn: "Lunar Meteorite",  rarity: "Mythic",    price: 14800,  descRu: "Осколок коры Луны, упавший на Землю", descEn: "Fragment of Moon's crust" },
+            { id: "mn_pai", cat: "minerals", icon: "🏮", symbol: "PAI", nameRu: "Пейнит",         nameEn: "Painite",          rarity: "Rainbow",   price: 68000,  descRu: "Редчайший минерал в книге рекордов", descEn: "Rarest borate mineral on Earth" },
+            { id: "mn_phi", cat: "minerals", icon: "🧪", symbol: "PHI", nameRu: "Философский камень",nameEn: "Philosopher Stone",rarity: "Rainbow",  price: 92000,  descRu: "Легендарный эликсир трансмутации", descEn: "Alchemical catalyst of transmutation" },
+            { id: "mn_aet", cat: "minerals", icon: "🌌", symbol: "AET", nameRu: "Эфирный кристалл",nameEn: "Aether Crystal",  rarity: "Rainbow",   price: 88000,  descRu: "Сгусток чистой космической энергии", descEn: "Crystallized pure cosmic energy" },
+            { id: "mn_sing",cat: "minerals", icon: "🕳️", symbol: "SNG", nameRu: "Осколок сингулярности",nameEn: "Singularity Shard",rarity: "Rainbow",price: 115000,descRu: "Искривляет пространство и время", descEn: "Warps space and time around it" },
+
+            // ================= 4. MATERIALS & ORGANIC (20 items) =================
+            { id: "mt_rag", cat: "materials", icon: "🧵", symbol: "RAG", nameRu: "Ветошь",         nameEn: "Scrap Cloth",      rarity: "Common",    price: 22,     descRu: "Старая техническая ткань", descEn: "Worn industrial scrap fabric" },
+            { id: "mt_wod", cat: "materials", icon: "🪵", symbol: "WOD", nameRu: "Дубовая доска",  nameEn: "Oak Timber",       rarity: "Common",    price: 35,     descRu: "Прочная высушенная древесина", descEn: "Seasoned hardwood timber" },
+            { id: "mt_col", cat: "materials", icon: "⬛", symbol: "COL", nameRu: "Древесный уголь",nameEn: "Charcoal",         rarity: "Common",    price: 32,     descRu: "Чистое топливо для кузницы", descEn: "Pure forge fuel" },
+            { id: "mt_bon", cat: "materials", icon: "🦴", symbol: "BON", nameRu: "Кость мамонта",  nameEn: "Mammoth Bone",     rarity: "Common",    price: 46,     descRu: "Древняя ископаемая кость", descEn: "Ancient fossilized bone" },
+            { id: "mt_cow", cat: "materials", icon: "🟫", symbol: "COW", nameRu: "Воловья кожа",   nameEn: "Cowhide Leather",  rarity: "Rare",      price: 145,    descRu: "Толстая выделанная кожа", descEn: "Thick tanned cattle hide" },
+            { id: "mt_rub", cat: "materials", icon: "🛞", symbol: "RUB", nameRu: "Каучук",         nameEn: "Natural Rubber",   rarity: "Rare",      price: 135,    descRu: "Эластичный полимер из гевеи", descEn: "Elastic natural polymer" },
+            { id: "mt_slk", cat: "materials", icon: "🕸️", symbol: "SLK", nameRu: "Шёлковая нить",  nameEn: "Fine Silk",        rarity: "Rare",      price: 150,    descRu: "Тончайшая прочная ткань", descEn: "Smooth natural protein fiber" },
+            { id: "mt_wlf", cat: "materials", icon: "🐺", symbol: "WLF", nameRu: "Шкура волка",    nameEn: "Wolf Pelt",        rarity: "SuperRare", price: 380,    descRu: "Тёплый мех северного хищника", descEn: "Thick northern predator fur" },
+            { id: "mt_amb", cat: "materials", icon: "🟠", symbol: "AMB", nameRu: "Балтийский янтарь",nameEn: "Baltic Amber",   rarity: "SuperRare", price: 360,    descRu: "Окаменевшая смола древних хвойных", descEn: "Fossilized ancient tree resin" },
+            { id: "mt_kev", cat: "materials", icon: "🦺", symbol: "KEV", nameRu: "Кевларовое волокно",nameEn: "Kevlar Fiber",   rarity: "SuperRare", price: 420,    descRu: "Пуленепробиваемый арамидный материал", descEn: "Ballistic aramid synthetic fiber" },
+            { id: "mt_crb", cat: "materials", icon: "🏎️", symbol: "CRB", nameRu: "Карбон",         nameEn: "Carbon Fiber",     rarity: "Epic",      price: 990,    descRu: "Углепластик для болидов и космоса", descEn: "Aerospace carbon-polymer weave" },
+            { id: "mt_ber", cat: "materials", icon: "🐻", symbol: "BER", nameRu: "Шкура гризли",   nameEn: "Grizzly Hide",     rarity: "Epic",      price: 940,    descRu: "Непробиваемая шкура хозяина тайги", descEn: "Heavy bear pelt" },
+            { id: "mt_ivp", cat: "materials", icon: "🦷", symbol: "IVR", nameRu: "Слоновая кость", nameEn: "Ancient Ivory",    rarity: "Epic",      price: 1120,   descRu: "Редкий резной бивень", descEn: "Rare carved tusk material" },
+            { id: "mt_crc", cat: "materials", icon: "🐊", symbol: "CRC", nameRu: "Кожа крокодила", nameEn: "Crocodile Leather",rarity: "Mythic",    price: 13800,  descRu: "Экзотическая броня, крайне сложная в добыче", descEn: "Exotic reptile hide, extremely hard to obtain" },
+            { id: "mt_bas", cat: "materials", icon: "🐍", symbol: "BSL", nameRu: "Чешуя василиска",nameEn: "Basilisk Scale",   rarity: "Mythic",    price: 15200,  descRu: "Ядовитая броня царя змей", descEn: "Venomous scale of the serpent king" },
+            { id: "mt_grf", cat: "materials", icon: "🦅", symbol: "GRF", nameRu: "Перо грифона",   nameEn: "Griffin Feather",  rarity: "Mythic",    price: 14400,  descRu: "Золотое перо повелителя небес", descEn: "Golden plume of a sky guardian" },
+            { id: "mt_lev", cat: "materials", icon: "🐋", symbol: "LEV", nameRu: "Шкура левиафана",nameEn: "Leviathan Hide",   rarity: "Rainbow",   price: 76000,  descRu: "Непробиваемая броня морского титана", descEn: "Abyssal armor of the sea titan" },
+            { id: "mt_drg", cat: "materials", icon: "🐉", symbol: "DRG", nameRu: "Чешуя дракона",  nameEn: "Dragon Scale",     rarity: "Rainbow",   price: 89000,  descRu: "Огнеупорная радужная чешуя древнего дракона", descEn: "Fireproof iridescent dragon scale" },
+            { id: "mt_phx", cat: "materials", icon: "🔥", symbol: "PHX", nameRu: "Пепел феникса",  nameEn: "Phoenix Ash",      rarity: "Rainbow",   price: 82000,  descRu: "Пылающий прах бессмертной птицы", descEn: "Embers of the immortal firebird" },
+            { id: "mt_std", cat: "materials", icon: "✨", symbol: "STD", nameRu: "Звёздная пыль",  nameEn: "Stardust",         rarity: "Rainbow",   price: 105000, descRu: "Первичная материя рождения галактик", descEn: "Primordial matter of newborn stars" }
+        ];
+
+        // Cases Configuration (Very low base Rainbow odds ~0.04% - 0.15%, high rewards)
+        const CASES = [
+            {
+                id: "scrap",
+                nameRu: "Мусорный бак",
+                nameEn: "Scrap Bin",
+                cost: 100,
+                icon: "🗑️",
+                baseWeights: { Common: 60.0, Rare: 26.0, SuperRare: 9.5, Epic: 3.4, Legendary: 0.9, Mythic: 0.16, Rainbow: 0.04 }
+            },
+            {
+                id: "lab",
+                nameRu: "Хим. бокс",
+                nameEn: "Lab Box",
+                cost: 500,
+                icon: "🧪",
+                baseWeights: { Common: 22.0, Rare: 38.0, SuperRare: 24.0, Epic: 11.0, Legendary: 3.9, Mythic: 1.02, Rainbow: 0.08 }
+            },
+            {
+                id: "vault",
+                nameRu: "Сейф Менделеева",
+                nameEn: "Mendeleev Vault",
+                cost: 2500,
+                icon: "☢️",
+                baseWeights: { Common: 0.0, Rare: 18.0, SuperRare: 34.0, Epic: 29.0, Legendary: 14.0, Mythic: 4.85, Rainbow: 0.15 }
+            }
+        ];
+
+        // Vibration Levels (ms)
+        const VIBRO_LEVELS = [0, 10, 22, 40];
+
+        // Translations
+        const I18N = {
+            ru: {
+                betaNotice: "БЕТА-ТЕСТИРОВАНИЕ • 100 ЭЛЕМЕНТОВ И МАТЕРИАЛОВ",
+                moneyBoostLabel: "Ставка удачи за MD:",
+                matBoostLabel: "Усиление материалами:",
+                selectBtn: "Выбрать",
+                spinBtn: "КРУТИТЬ БАРАБАН",
+                caseContents: "Возможный дроп из этого кейса",
+                hideDrop: "Скрыть дроп",
+                showDrop: "Показать дроп",
+                subInv: "Склад",
+                subCraft: "Крафт (до 10)",
+                invTitle: "Твой склад материалов",
+                invCount: "Предметов:",
+                sellAll: "Продать всё",
+                craftTitle: "Синтезатор / Крафт",
+                craftSub: "Выбери до 10 материалов для повышения редкости",
+                targetRarity: "Целевая редкость:",
+                successChance: "Шанс успешного синтеза:",
+                clearBtn: "Очистить",
+                combineBtn: "СКОМБИНИРОВАТЬ",
+                tapToAdd: "Нажми на предмет, чтобы добавить в крафт",
+                indexTitle: "Индекс коллекции",
+                indexSub: "Все 100 предметов: открытые цветные, ненайденные — в серой обложке",
+                sortAlpha: "От А до Я (A–Z)",
+                sortOrder: "По порядку (Common → Rainbow)",
+                sortNewest: "Самые новые (полученные)",
+                sortCollectedCat: "Собранные по категориям",
+                catAll: "Все (100)",
+                catElements: "Таб. Элементов",
+                catMetals: "Металлы",
+                catMinerals: "Камни и минералы",
+                catMaterials: "Материалы",
+                topTitle: "Таблица лидеров MendeleevDrop",
+                topSub: "Честный рейтинг игроков в реальном времени",
+                firstPlayerBanner: "Ты самый первый кто в этой игре!",
+                firstPlayerSub: "Других игроков пока нет. Начислен бонус первооткрывателя +10,000 MD!",
+                questsTitle: "Задания и бонусы",
+                settingsTitle: "Настройки игры",
+                themeLabel: "Тема оформления",
+                themeDark: "Тёмная (YouTube)",
+                themeLight: "Светлая",
+                langLabel: "Язык интерфейса / Language",
+                vibroLabel: "Сила вибрации при крутке",
+                vibroOff: "Выкл",
+                vibroLow: "Слабая",
+                vibroMed: "Средняя",
+                vibroHigh: "Сильная",
+                rainbowFxTitle: "Эффекты радуги (Rainbow FX)",
+                rainbowFxSub: "Анимация радужного перелива на карточках и шансах",
+                soundFxTitle: "Звуковые эффекты",
+                soundFxSub: "Тики барабана и победные аккорды",
+                accountTitle: "Аккаунт игрока",
+                autoSaved: "Автосохранение",
+                nickLabel: "Игровой никнейм (также меняется по клику на строку игрока сверху)",
+                saveBtn: "Сохранить",
+                statSpins: "Круток",
+                statIndex: "Индекс",
+                statVersion: "Версия",
+                dangerZoneTitle: "ОПАСНАЯ ЗОНА • СБРОС ПРОГРЕССА",
+                dangerZoneDesc: "Полное удаление сохранения: обнулятся баланс MD, весь склад, Индекс 100 материалов и статистика.",
+                wipeBtn: "СТЕРЕТЬ ПРОГРЕСС",
+                wipeConfirmPrompt: "Вы уверены? Нажмите еще раз для полного удаления!",
+                cancelBtn: "Отмена",
+                wipeFinalBtn: "УДАЛИТЬ ВСЁ НАВСЕГДА",
+                navDrop: "Рулетка",
+                navStorage: "Склад / Крафт",
+                navIndex: "Индекс",
+                navSocial: "Топ / Задания",
+                navSettings: "Настройки",
+                profileModalTitle: "Профиль игрока",
+                chooseAvatar: "Выбери значок профиля",
+                nickInputLabel: "Игровой никнейм",
+                balanceLabel: "Баланс:",
+                indexDiscoveredLabel: "Собрано в Индексе:",
+                saveProfileBtn: "Сохранить профиль",
+                boostModalTitle: "Усиление крутки материалами",
+                boostModalSub: "Выбери до 10 предметов (сгорят при крутке ради повышения шанса)",
+                doneBtn: "Готово",
+                valueLabel: "Цена:",
+                sellNow: "Продать",
+                keepItem: "В склад",
+                welcomeTitle: "Добро пожаловать в MendeleevDrop!",
+                welcomeDesc: "Ты самый первый игрок в таблице лидеров! Введи свой никнейм, чтобы забрать стартовый бонус +10,000 MD.",
+                claimStartBtn: "Начать (+10,000 MD)",
+                emptyInv: "Склад пуст. Покрути барабан!",
+                notEnoughMoney: "Недостаточно MD! Забери подарок или продай предметы.",
+                craftSuccess: "УСПЕШНЫЙ СИНТЕЗ!",
+                craftFail: "Неудача! Материалы расщепились в пыль...",
+                copiedInvite: "Ссылка приглашения скопирована!"
+            },
+            en: {
+                betaNotice: "BETA TESTING • 100 ELEMENTS & MATERIALS",
+                moneyBoostLabel: "MD Luck Stake:",
+                matBoostLabel: "Material Boost:",
+                selectBtn: "Select",
+                spinBtn: "SPIN ROULETTE",
+                caseContents: "Possible drops from this case",
+                hideDrop: "Hide Drop",
+                showDrop: "Show Drop",
+                subInv: "Storage",
+                subCraft: "Craft (up to 10)",
+                invTitle: "Material Storage",
+                invCount: "Items:",
+                sellAll: "Sell All",
+                craftTitle: "Synthesizer / Combiner",
+                craftSub: "Select up to 10 materials to upgrade rarity",
+                targetRarity: "Target Rarity:",
+                successChance: "Synthesis Success Chance:",
+                clearBtn: "Clear",
+                combineBtn: "COMBINE ITEMS",
+                tapToAdd: "Tap an item below to add to synthesizer",
+                indexTitle: "Collection Index",
+                indexSub: "All 100 items: discovered in full color, missing in gray silhouette",
+                sortAlpha: "Alphabetical (A–Z)",
+                sortOrder: "By Order (Common → Rainbow)",
+                sortNewest: "Newest Obtained",
+                sortCollectedCat: "Collected by Category",
+                catAll: "All (100)",
+                catElements: "Periodic Table",
+                catMetals: "Metals",
+                catMinerals: "Stones & Minerals",
+                catMaterials: "Materials",
+                topTitle: "MendeleevDrop Leaderboard",
+                topSub: "Live player rankings",
+                firstPlayerBanner: "You are the very first player in this game!",
+                firstPlayerSub: "No other players yet. You received +10,000 MD Pioneer Bonus!",
+                questsTitle: "Quests & Rewards",
+                settingsTitle: "Game Settings",
+                themeLabel: "Appearance Theme",
+                themeDark: "Dark (YouTube)",
+                themeLight: "Light",
+                langLabel: "Interface Language / Язык",
+                vibroLabel: "Roulette Vibration Strength",
+                vibroOff: "Off",
+                vibroLow: "Low",
+                vibroMed: "Medium",
+                vibroHigh: "Strong",
+                rainbowFxTitle: "Rainbow Effects (Rainbow FX)",
+                rainbowFxSub: "Animated rainbow gradient on Rainbow drop odds & cards",
+                soundFxTitle: "Sound Effects",
+                soundFxSub: "Drum ticks and win chimes",
+                accountTitle: "Player Account",
+                autoSaved: "Auto-Saved",
+                nickLabel: "Player Nickname (also editable by tapping the top player bar)",
+                saveBtn: "Save",
+                statSpins: "Spins",
+                statIndex: "Index",
+                statVersion: "Version",
+                dangerZoneTitle: "DANGER ZONE • WIPE PROGRESS",
+                dangerZoneDesc: "Permanent wipe: resets MD balance, storage, 100-item Index, and stats.",
+                wipeBtn: "WIPE PROGRESS",
+                wipeConfirmPrompt: "Are you sure? Tap again to permanently wipe all data!",
+                cancelBtn: "Cancel",
+                wipeFinalBtn: "DELETE EVERYTHING FOREVER",
+                navDrop: "Roulette",
+                navStorage: "Storage / Craft",
+                navIndex: "Index",
+                navSocial: "Top / Quests",
+                navSettings: "Settings",
+                profileModalTitle: "Player Profile",
+                chooseAvatar: "Choose Profile Icon",
+                nickInputLabel: "Player Nickname",
+                balanceLabel: "Balance:",
+                indexDiscoveredLabel: "Index Collected:",
+                saveProfileBtn: "Save Profile",
+                boostModalTitle: "Material Spin Boost",
+                boostModalSub: "Select up to 10 items (consumed on spin to boost rare odds)",
+                doneBtn: "Done",
+                valueLabel: "Value:",
+                sellNow: "Sell",
+                keepItem: "Keep",
+                welcomeTitle: "Welcome to MendeleevDrop!",
+                welcomeDesc: "You are the very first player on the leaderboard! Enter your nickname to claim +10,000 MD starter bonus.",
+                claimStartBtn: "Start (+10,000 MD)",
+                emptyInv: "Storage is empty. Spin a case!",
+                notEnoughMoney: "Not enough MD! Claim Daily Gift or sell items.",
+                craftSuccess: "SYNTHESIS SUCCESSFUL!",
+                craftFail: "Synthesis Failed! Materials turned to dust...",
+                copiedInvite: "Invite link copied to clipboard!"
+            }
+        };
+
+        function createDefaultState() {
+            return {
+                nickname: "",
+                avatar: "⚗️",
+                lang: "ru",
+                theme: "dark",
+                vibroLevel: 1,
+                rainbowFx: true,
+                soundEnabled: true,
+                showDropPreview: true,
+                balance: 10000,
+                inventory: [],          // [{ uid, itemId }]
+                discovered: {},         // { itemId: { count, lastObtained } }
+                selectedCase: "scrap",
+                moneyBoostMult: 1,      // 1, 2, 5, 10
+                spinBoostUids: [],      // up to 10 inventory uids
+                craftSlots: [],         // up to 10 inventory uids
+                indexCategory: "ALL",
+                lastDailyClaim: 0,
+                stats: {
+                    spins: 0,
+                    crafts: 0,
+                    invites: 0
+                },
+                claimedQuests: []
+            };
+        }
+
+        let state = createDefaultState();
+        let isSpinning = false;
+        let lastWonUid = null;
+        let selectedModalAvatar = "⚗️";
+
+        // ==================== SCROLL AUTO-HIDE TOP HEADER ====================
+        let lastScrollY = window.scrollY || 0;
+        window.addEventListener("scroll", () => {
+            const currentScrollY = window.scrollY || 0;
+            const wrapper = document.getElementById("stickyHeaderWrapper");
+            if (!wrapper) return;
+
+            if (currentScrollY > 65 && currentScrollY > lastScrollY + 6) {
+                wrapper.classList.add("header-hidden");
+            } else if (currentScrollY < lastScrollY - 4 || currentScrollY <= 25) {
+                wrapper.classList.remove("header-hidden");
+            }
+            lastScrollY = currentScrollY;
+        }, { passive: true });
+
+        // ==================== HAPTIC VIBRATION & AUDIO ====================
+        function triggerHaptic(ms) {
+            try {
+                if (ms > 0 && navigator && typeof navigator.vibrate === "function") {
+                    navigator.vibrate(ms);
+                }
+            } catch (e) {}
+        }
+
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function playTickSound() {
+            if (!state.soundEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new AudioCtx();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = "triangle";
+                osc.frequency.setValueAtTime(560, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(195, audioCtx.currentTime + 0.032);
+                gain.gain.setValueAtTime(0.07, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.032);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.038);
+            } catch (e) {}
+        }
+
+        function playWinSound(rarity) {
+            if (!state.soundEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new AudioCtx();
+                const notes = (rarity === "Mythic" || rarity === "Rainbow" || rarity === "Legendary")
+                    ? [440, 554, 659, 880]
+                    : [392, 523, 659];
+                notes.forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = "sine";
+                    osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.08);
+                    gain.gain.setValueAtTime(0.11, audioCtx.currentTime + idx * 0.08);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + idx * 0.08 + 0.24);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(audioCtx.currentTime + idx * 0.08);
+                    osc.stop(audioCtx.currentTime + idx * 0.08 + 0.25);
+                });
+            } catch (e) {}
+        }
+
+        // ==================== STORAGE & INIT ====================
+        function loadState() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    state = {
+                        ...createDefaultState(),
+                        ...parsed,
+                        stats: { ...createDefaultState().stats, ...(parsed.stats || {}) },
+                        discovered: parsed.discovered || {}
+                    };
+                }
+            } catch (e) {}
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch (e) {}
+        }
+
+        function recordItemDiscovery(itemId) {
+            if (!state.discovered) state.discovered = {};
+            const prev = state.discovered[itemId];
+            const prevCount = typeof prev === "number" ? prev : (prev ? prev.count : 0);
+            state.discovered[itemId] = {
+                count: prevCount + 1,
+                lastObtained: Date.now()
+            };
+        }
+
+        function getDiscoveredCount(itemId) {
+            const entry = state.discovered ? state.discovered[itemId] : null;
+            if (!entry) return 0;
+            return typeof entry === "number" ? entry : (entry.count || 0);
+        }
+
+        function getDiscoveredTimestamp(itemId) {
+            const entry = state.discovered ? state.discovered[itemId] : null;
+            if (!entry) return 0;
+            return typeof entry === "object" ? (entry.lastObtained || 0) : 1;
+        }
+
+        window.onload = function () {
+            loadState();
+
+            document.getElementById("splashVersionLabel").textContent = APP_VERSION;
+            document.getElementById("cornerVersionLabel").textContent = APP_VERSION;
+            document.getElementById("settingsVersionVal").textContent = APP_VERSION;
+
+            applyThemeAndEffects();
+            applyLanguage();
+
+            setTimeout(() => {
+                document.getElementById("splashBar").style.width = "100%";
+            }, 80);
+
+            setTimeout(() => {
+                const splash = document.getElementById("splashScreen");
+                splash.style.opacity = "0";
+                setTimeout(() => {
+                    splash.classList.add("hidden");
+                    if (!state.nickname) {
+                        document.getElementById("welcomeModal").classList.remove("hidden");
+                    }
+                }, 420);
+            }, 800);
+
+            renderAll();
+        };
+
+        function confirmWelcomeNick() {
+            const val = document.getElementById("welcomeNickInput").value.trim();
+            state.nickname = val || ("Pioneer_" + Math.floor(100 + Math.random() * 900));
+            saveState();
+            document.getElementById("welcomeModal").classList.add("hidden");
+            renderAll();
+        }
+
+        // ==================== EFFECTIVE LUCK & DYNAMIC WEIGHTS ====================
+        // Combines MD Money Stake (x1, x2, x5, x10) + up to 10 sacrificed materials
+        function getEffectiveLuckMultiplier() {
+            // Clean stale boost uids
+            state.spinBoostUids = state.spinBoostUids.filter(uid => state.inventory.some(e => e.uid === uid));
+
+            let matLuckBonus = 0;
+            state.spinBoostUids.forEach(uid => {
+                const entry = state.inventory.find(e => e.uid === uid);
+                if (entry) {
+                    const item = ITEMS_DB.find(i => i.id === entry.itemId);
+                    if (item) {
+                        const ord = RARITIES[item.rarity].order;
+                        matLuckBonus += ord * 0.18; // Up to +12.6x with 10 Rainbow items
+                    }
+                }
+            });
+
+            return Number((state.moneyBoostMult + matLuckBonus).toFixed(2));
+        }
+
+        function getEffectiveCaseWeights(caseObj) {
+            const luck = getEffectiveLuckMultiplier();
+            const w = { ...caseObj.baseWeights };
+
+            if (luck > 1) {
+                // Shift probability from Common/Rare towards Epic/Legendary/Mythic/Rainbow
+                const dampCommon = Math.pow(luck, 0.72);
+                w.Common = w.Common / dampCommon;
+                w.Rare = w.Rare / Math.pow(luck, 0.25);
+                w.SuperRare = w.SuperRare * Math.pow(luck, 0.18);
+                w.Epic = w.Epic * Math.pow(luck, 0.45);
+                w.Legendary = w.Legendary * Math.pow(luck, 0.65);
+                w.Mythic = w.Mythic * Math.pow(luck, 0.85);
+                w.Rainbow = w.Rainbow * Math.pow(luck, 1.05);
+            }
+            return w;
+        }
+
+        function getEffectiveSpinCost(caseObj) {
+            return caseObj.cost * state.moneyBoostMult;
+        }
+
+        function getItemDropChancePercent(item, caseObj = null) {
+            const targetCase = caseObj || CASES.find(c => c.id === state.selectedCase) || CASES[0];
+            const weights = getEffectiveCaseWeights(targetCase);
+            const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0);
+            const rarityWeight = weights[item.rarity] || 0;
+
+            if (rarityWeight <= 0) {
+                // Fallback reference using Lab Box
+                const labWeights = getEffectiveCaseWeights(CASES[1]);
+                const labTotal = Object.values(labWeights).reduce((a, b) => a + b, 0);
+                const poolCount = ITEMS_DB.filter(i => i.rarity === item.rarity).length || 1;
+                const pct = ((labWeights[item.rarity] || 0) / labTotal) * 100 / poolCount;
+                return formatPercent(pct);
+            }
+
+            const poolCount = ITEMS_DB.filter(i => i.rarity === item.rarity).length || 1;
+            const itemPct = (rarityWeight / totalWeight) * 100 / poolCount;
+            return formatPercent(itemPct);
+        }
+
+        function formatPercent(val) {
+            if (val >= 1) return val.toFixed(1) + "%";
+            if (val >= 0.1) return val.toFixed(2) + "%";
+            if (val >= 0.01) return val.toFixed(3) + "%";
+            return val.toFixed(4) + "%";
+        }
+
+        // ==================== LOCALIZATION ====================
+        function t(key) {
+            return I18N[state.lang][key] || key;
+        }
+
+        function getItemName(item) {
+            return state.lang === "ru" ? item.nameRu : item.nameEn;
+        }
+
+        function getItemDesc(item) {
+            return state.lang === "ru" ? item.descRu : item.descEn;
+        }
+
+        function applyLanguage() {
+            document.querySelectorAll("[data-i18n]").forEach(el => {
+                const key = el.getAttribute("data-i18n");
+                if (I18N[state.lang][key]) {
+                    el.textContent = I18N[state.lang][key];
+                }
+            });
+            updateSettingsControlsUI();
+            updateDropToggleUI();
+        }
+
+        function setLanguage(lang) {
+            state.lang = lang;
+            saveState();
+            applyLanguage();
+            renderAll();
+        }
+
+        // ==================== THEME, VIBRATION & RAINBOW FX ====================
+        function applyThemeAndEffects() {
+            document.body.classList.toggle("theme-light", state.theme === "light");
+            document.body.classList.toggle("no-rainbow-fx", !state.rainbowFx);
+            updateSettingsControlsUI();
+        }
+
+        function setTheme(theme) {
+            state.theme = theme;
+            saveState();
+            applyThemeAndEffects();
+        }
+
+        function onVibroSliderChange(val) {
+            state.vibroLevel = parseInt(val, 10);
+            saveState();
+            updateSettingsControlsUI();
+            const ms = VIBRO_LEVELS[state.vibroLevel];
+            if (ms > 0) triggerHaptic(ms);
+        }
+
+        function toggleRainbowFx() {
+            state.rainbowFx = !state.rainbowFx;
+            saveState();
+            applyThemeAndEffects();
+            renderAll();
+        }
+
+        function toggleSound() {
+            state.soundEnabled = !state.soundEnabled;
+            saveState();
+            updateSettingsControlsUI();
+        }
+
+        function updateSettingsControlsUI() {
+            const darkBtn = document.getElementById("themeBtnDark");
+            const lightBtn = document.getElementById("themeBtnLight");
+            if (darkBtn && lightBtn) {
+                darkBtn.className = state.theme === "dark"
+                    ? "py-2.5 px-3 rounded-xl border border-red-500 bg-red-500/15 text-red-500 text-xs font-bold transition flex items-center justify-center gap-2"
+                    : "py-2.5 px-3 rounded-xl border border-[#2c2c2c] elevated-box text-muted text-xs font-bold transition flex items-center justify-center gap-2";
+                lightBtn.className = state.theme === "light"
+                    ? "py-2.5 px-3 rounded-xl border border-red-500 bg-red-500/15 text-red-500 text-xs font-bold transition flex items-center justify-center gap-2"
+                    : "py-2.5 px-3 rounded-xl border border-[#2c2c2c] elevated-box text-muted text-xs font-bold transition flex items-center justify-center gap-2";
+            }
+
+            const ruBtn = document.getElementById("langBtnRu");
+            const enBtn = document.getElementById("langBtnEn");
+            if (ruBtn && enBtn) {
+                ruBtn.className = state.lang === "ru"
+                    ? "py-2.5 rounded-xl border border-red-500 bg-red-500/15 text-red-500 text-xs font-bold transition"
+                    : "py-2.5 rounded-xl border border-[#2c2c2c] elevated-box text-muted text-xs font-bold transition";
+                enBtn.className = state.lang === "en"
+                    ? "py-2.5 rounded-xl border border-red-500 bg-red-500/15 text-red-500 text-xs font-bold transition"
+                    : "py-2.5 rounded-xl border border-[#2c2c2c] elevated-box text-muted text-xs font-bold transition";
+            }
+
+            const slider = document.getElementById("vibroSlider");
+            const vibroTxt = document.getElementById("vibroValueText");
+            const vibroBadge = document.getElementById("vibroStatusBadge");
+            if (slider && vibroTxt) {
+                slider.value = state.vibroLevel;
+                const ms = VIBRO_LEVELS[state.vibroLevel];
+                const labelsRu = ["Выкл", "Слабая (10 ms)", "Средняя (22 ms)", "Сильная (40 ms)"];
+                const labelsEn = ["Off", "Low (10 ms)", "Medium (22 ms)", "Strong (40 ms)"];
+                vibroTxt.textContent = state.lang === "ru" ? labelsRu[state.vibroLevel] : labelsEn[state.vibroLevel];
+                if (vibroBadge) vibroBadge.textContent = ms === 0 ? "VIBRO: OFF" : `VIBRO: ${ms}ms`;
+            }
+
+            const rBtn = document.getElementById("rainbowToggleBtn");
+            const rKnob = document.getElementById("rainbowToggleKnob");
+            if (rBtn && rKnob) {
+                rBtn.className = `w-12 h-7 rounded-full transition relative p-1 ${state.rainbowFx ? 'bg-emerald-500' : 'bg-zinc-600'}`;
+                rKnob.className = `block w-5 h-5 rounded-full bg-white shadow transform transition ${state.rainbowFx ? 'translate-x-5' : 'translate-x-0'}`;
+            }
+
+            const sBtn = document.getElementById("soundSettingsBtn");
+            const sKnob = document.getElementById("soundSettingsKnob");
+            if (sBtn && sKnob) {
+                sBtn.className = `w-12 h-7 rounded-full transition relative p-1 ${state.soundEnabled ? 'bg-emerald-500' : 'bg-zinc-600'}`;
+                sKnob.className = `block w-5 h-5 rounded-full bg-white shadow transform transition ${state.soundEnabled ? 'translate-x-5' : 'translate-x-0'}`;
+            }
+
+            const nickInput = document.getElementById("nicknameInput");
+            if (nickInput && document.activeElement !== nickInput) {
+                nickInput.value = state.nickname || "";
+            }
+            const statSpins = document.getElementById("statSpinsVal");
+            const statIdx = document.getElementById("statIndexVal");
+            if (statSpins) statSpins.textContent = state.stats.spins;
+            if (statIdx) statIdx.textContent = `${Object.keys(state.discovered || {}).length}/${ITEMS_DB.length}`;
+        }
+
+        function saveNicknameFromSettings() {
+            const rawNick = document.getElementById("nicknameInput").value.trim();
+            state.nickname = rawNick || ("Pioneer_" + Math.floor(100 + Math.random() * 900));
+            saveState();
+            renderAll();
+            showToast(state.lang === "ru" ? "Никнейм сохранён!" : "Nickname saved!");
+        }
+
+        // ==================== DIRECT PLAYER PROFILE MODAL ====================
+        function openProfileModal() {
+            selectedModalAvatar = state.avatar || "⚗️";
+            document.getElementById("modalNickInput").value = state.nickname || "";
+            document.getElementById("modalBalanceText").textContent = state.balance.toLocaleString() + " MD";
+            document.getElementById("modalIndexText").textContent = `${Object.keys(state.discovered || {}).length} / ${ITEMS_DB.length}`;
+
+            renderAvatarPicker();
+            document.getElementById("profileModal").classList.remove("hidden");
+        }
+
+        function closeProfileModal() {
+            document.getElementById("profileModal").classList.add("hidden");
+        }
+
+        function renderAvatarPicker() {
+            document.getElementById("avatarPickerGrid").innerHTML = AVATARS.map(av => {
+                const active = av === selectedModalAvatar;
+                return `
+                    <button onclick="selectModalAvatar('${av}')" class="aspect-square rounded-xl border text-lg flex items-center justify-center transition ${active ? 'border-amber-500 bg-amber-500/20 scale-105' : 'inner-slot border-[#2c2c2c]'}">
+                        ${av}
+                    </button>
+                `;
+            }).join("");
+        }
+
+        function selectModalAvatar(av) {
+            selectedModalAvatar = av;
+            renderAvatarPicker();
+        }
+
+        function saveProfileFromModal() {
+            const nick = document.getElementById("modalNickInput").value.trim();
+            state.nickname = nick || ("Pioneer_" + Math.floor(100 + Math.random() * 900));
+            state.avatar = selectedModalAvatar;
+            saveState();
+            closeProfileModal();
+            renderAll();
+            showToast(state.lang === "ru" ? "Профиль обновлён!" : "Profile updated!");
+        }
+
+        // ==================== DOUBLE CONFIRMATION WIPE IN RED SQUARE ====================
+        function armWipeStep2() {
+            triggerHaptic(25);
+            document.getElementById("wipeStep1Box").classList.add("hidden");
+            document.getElementById("wipeStep2Box").classList.remove("hidden");
+        }
+
+        function cancelWipeStep2() {
+            document.getElementById("wipeStep2Box").classList.add("hidden");
+            document.getElementById("wipeStep1Box").classList.remove("hidden");
+        }
+
+        function executeFullWipe() {
+            localStorage.removeItem(STORAGE_KEY);
+            state = createDefaultState();
+            saveState();
+            cancelWipeStep2();
+            applyThemeAndEffects();
+            applyLanguage();
+            renderAll();
+            showToast(state.lang === "ru" ? "Весь прогресс полностью стёрт!" : "All progress wiped!");
+            document.getElementById("welcomeModal").classList.remove("hidden");
+        }
+
+        // ==================== NAVIGATION ====================
+        function switchTab(tabName) {
+            const tabs = ["drop", "storage", "index", "social", "settings"];
+            tabs.forEach(tb => {
+                document.getElementById("tab-" + tb).classList.toggle("hidden", tb !== tabName);
+            });
+
+            document.querySelectorAll(".nav-btn").forEach(btn => {
+                const isTarget = btn.getAttribute("data-tab") === tabName;
+                btn.classList.toggle("text-red-500", isTarget);
+                btn.classList.toggle("bg-red-500/10", isTarget);
+                btn.classList.toggle("text-muted", !isTarget);
+            });
+
+            if (tabName !== "settings") {
+                cancelWipeStep2();
+            }
+
+            renderAll();
+        }
+
+        function setStorageSubTab(sub) {
+            const isInv = sub === "inv";
+            document.getElementById("subview-inv").classList.toggle("hidden", !isInv);
+            document.getElementById("subview-craft").classList.toggle("hidden", isInv);
+
+            document.getElementById("subTabInvBtn").className = isInv
+                ? "py-2 rounded-xl text-xs font-extrabold uppercase transition bg-red-600 text-white"
+                : "py-2 rounded-xl text-xs font-extrabold uppercase transition text-muted";
+            document.getElementById("subTabCraftBtn").className = !isInv
+                ? "py-2 rounded-xl text-xs font-extrabold uppercase transition bg-red-600 text-white"
+                : "py-2 rounded-xl text-xs font-extrabold uppercase transition text-muted";
+        }
+
+        // ==================== ITEM CARD VISUAL HELPER ====================
+        function renderItemVisualHTML(item, size = "md") {
+            const small = size === "sm";
+            if (item.cat === "elements") {
+                return `
+                    <div class="w-full h-full flex flex-col justify-between p-1.5 font-mono-tech">
+                        <div class="flex justify-between items-center text-[9px] text-muted leading-none">
+                            <span>${item.num}</span>
+                            <span>EL</span>
+                        </div>
+                        <div class="${small ? 'text-xl' : 'text-3xl'} font-black text-center leading-none">${item.symbol}</div>
+                        <div class="text-[8px] text-center text-muted truncate">${item.nameEn}</div>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="w-full h-full flex flex-col items-center justify-center p-1">
+                        <span class="${small ? 'text-2xl' : 'text-4xl'} leading-none">${item.icon}</span>
+                        <span class="font-mono-tech text-[9px] text-muted mt-1">${item.symbol}</span>
+                    </div>
+                `;
+            }
+        }
+
+        // ==================== ROULETTE, STAKE BOOST & DROP LIST ====================
+        function setMoneyBoost(mult) {
+            if (isSpinning) return;
+            state.moneyBoostMult = mult;
+            saveState();
+            renderCaseSelector();
+            populateIdleRoulette();
+        }
+
+        function openSpinBoostModal() {
+            if (isSpinning) return;
+            renderSpinBoostModalGrid();
+            document.getElementById("spinBoostModal").classList.remove("hidden");
+        }
+
+        function closeSpinBoostModal() {
+            document.getElementById("spinBoostModal").classList.add("hidden");
+            renderCaseSelector();
+            populateIdleRoulette();
+        }
+
+        function clearSpinBoostItems() {
+            state.spinBoostUids = [];
+            saveState();
+            renderSpinBoostModalGrid();
+            renderCaseSelector();
+        }
+
+        function toggleSpinBoostItem(uid) {
+            const idx = state.spinBoostUids.indexOf(uid);
+            if (idx !== -1) {
+                state.spinBoostUids.splice(idx, 1);
+            } else {
+                if (state.spinBoostUids.length >= 10) {
+                    showToast("Max 10 items!");
+                    return;
+                }
+                state.spinBoostUids.push(uid);
+            }
+            saveState();
+            renderSpinBoostModalGrid();
+        }
+
+        function renderSpinBoostModalGrid() {
+            state.spinBoostUids = state.spinBoostUids.filter(uid => state.inventory.some(e => e.uid === uid));
+            document.getElementById("modalBoostCount").textContent = `${state.spinBoostUids.length}/10`;
+
+            const grid = document.getElementById("spinBoostInvGrid");
+            if (state.inventory.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-8 text-xs text-muted">${t("emptyInv")}</div>`;
+                return;
+            }
+
+            grid.innerHTML = state.inventory.map(entry => {
+                const item = ITEMS_DB.find(i => i.id === entry.itemId);
+                if (!item) return "";
+                const r = RARITIES[item.rarity];
+                const selected = state.spinBoostUids.includes(entry.uid);
+                return `
+                    <button onclick="toggleSpinBoostItem('${entry.uid}')" class="rounded-xl border p-2 text-center transition ${r.colorClass} ${selected ? 'ring-2 ring-emerald-500 scale-95' : 'opacity-85'}">
+                        <div class="text-sm font-black font-mono-tech">${item.symbol}</div>
+                        <div class="text-[10px] font-bold truncate">${getItemName(item)}</div>
+                        <div class="text-[8px] font-extrabold uppercase ${r.textClass}">${r.label}</div>
+                    </button>
+                `;
+            }).join("");
+        }
+
+        function toggleDropList() {
+            state.showDropPreview = !state.showDropPreview;
+            saveState();
+            updateDropToggleUI();
+        }
+
+        function updateDropToggleUI() {
+            const grid = document.getElementById("caseContentsGrid");
+            const label = document.getElementById("toggleDropLabel");
+            const icon = document.getElementById("toggleDropIcon");
+            if (!grid || !label) return;
+
+            grid.classList.toggle("hidden", !state.showDropPreview);
+            label.textContent = state.showDropPreview ? t("hideDrop") : t("showDrop");
+            icon.textContent = state.showDropPreview ? "🙈" : "👁️";
+        }
+
+        function renderCaseSelector() {
+            const container = document.getElementById("caseSelector");
+            container.innerHTML = CASES.map(c => {
+                const active = c.id === state.selectedCase;
+                const title = state.lang === "ru" ? c.nameRu : c.nameEn;
+                const effectiveCost = getEffectiveSpinCost(c);
+                return `
+                    <button onclick="selectCase('${c.id}')" class="p-2.5 rounded-2xl border text-left transition active:scale-95 ${active ? 'bg-red-500/15 border-red-500 shadow-md' : 'surface-box hover:opacity-90'}">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xl">${c.icon}</span>
+                            <span class="font-mono-tech text-[11px] font-bold ${active ? 'text-red-500' : 'text-amber-500'}">${effectiveCost} MD</span>
+                        </div>
+                        <div class="text-xs font-extrabold truncate">${title}</div>
+                    </button>
+                `;
+            }).join("");
+
+            const current = CASES.find(c => c.id === state.selectedCase);
+            const totalCost = getEffectiveSpinCost(current);
+            const totalLuck = getEffectiveLuckMultiplier();
+
+            document.getElementById("currentCaseTitle").textContent = state.lang === "ru" ? current.nameRu : current.nameEn;
+            document.getElementById("spinCostBadge").textContent = totalCost.toLocaleString() + " MD";
+            document.getElementById("activeLuckBadge").textContent = `LUCK x${totalLuck}`;
+
+            // Money Boost Buttons UI
+            document.querySelectorAll(".boost-mult-btn").forEach(btn => {
+                const m = parseInt(btn.getAttribute("data-mult"), 10);
+                const isSel = m === state.moneyBoostMult;
+                btn.className = isSel
+                    ? "boost-mult-btn py-1.5 rounded-xl border border-amber-500 bg-amber-500/20 text-amber-500 text-xs font-mono-tech font-extrabold transition"
+                    : "boost-mult-btn py-1.5 rounded-xl border border-[#2c2c2c] elevated-box text-muted text-xs font-mono-tech font-extrabold transition";
+            });
+
+            document.getElementById("moneyBoostInfo").textContent = state.moneyBoostMult === 1
+                ? (state.lang === "ru" ? "x1 (Базовая ставка)" : "x1 (Base Stake)")
+                : `x${state.moneyBoostMult} (${totalCost.toLocaleString()} MD)`;
+
+            // Material Boost Status UI
+            state.spinBoostUids = state.spinBoostUids.filter(uid => state.inventory.some(e => e.uid === uid));
+            document.getElementById("spinBoostMatCount").textContent = `${state.spinBoostUids.length}/10`;
+            document.getElementById("spinBoostBonusText").textContent = state.spinBoostUids.length > 0
+                ? (state.lang === "ru" ? `Активно усиление: общий множитель удачи x${totalLuck}` : `Boost active: total luck multiplier x${totalLuck}`)
+                : (state.lang === "ru" ? "Добавь до 10 предметов со склада для повышения шанса редких" : "Add up to 10 storage items to boost rare drop odds");
+
+            // Render possible drops preview sorted from Rainbow -> Common so player sees top drops first
+            const weights = getEffectiveCaseWeights(current);
+            const possibleItems = ITEMS_DB
+                .filter(it => (weights[it.rarity] || 0) > 0)
+                .sort((a, b) => RARITIES[b.rarity].order - RARITIES[a.rarity].order);
+
+            document.getElementById("caseContentsGrid").innerHTML = possibleItems.map(item => {
+                const r = RARITIES[item.rarity];
+                const chanceStr = getItemDropChancePercent(item, current);
+                return `
+                    <div class="relative rounded-xl border p-2.5 pt-5 flex flex-col items-center text-center ${r.colorClass}">
+                        <span class="absolute top-1.5 right-2 font-mono-tech text-[10px] font-extrabold ${r.textClass}">${chanceStr}</span>
+                        <div class="w-14 h-14 rounded-lg inner-slot mb-1.5 flex items-center justify-center">
+                            ${renderItemVisualHTML(item, "sm")}
+                        </div>
+                        <div class="text-[11px] font-bold truncate w-full">${getItemName(item)}</div>
+                        <div class="text-[9px] font-extrabold uppercase ${r.textClass}">${r.label}</div>
+                        <div class="text-[10px] font-mono-tech text-amber-500 mt-0.5">${item.price.toLocaleString()} MD</div>
+                    </div>
+                `;
+            }).join("");
+
+            updateDropToggleUI();
+        }
+
+        function selectCase(caseId) {
+            if (isSpinning) return;
+            state.selectedCase = caseId;
+            renderCaseSelector();
+            populateIdleRoulette();
+        }
+
+        function rollWeightedItem(caseObj) {
+            const weights = getEffectiveCaseWeights(caseObj);
+            const totalWeight = Object.values(weights).reduce((a, b) => a + b, 0);
+            let rand = Math.random() * totalWeight;
+            let chosenRarity = "Common";
+            for (const [rarity, weight] of Object.entries(weights)) {
+                if (rand < weight) {
+                    chosenRarity = rarity;
+                    break;
+                }
+                rand -= weight;
+            }
+            const pool = ITEMS_DB.filter(i => i.rarity === chosenRarity);
+            return pool[Math.floor(Math.random() * pool.length)];
+        }
+
+        function buildRouletteCardHTML(item, caseObj) {
+            const r = RARITIES[item.rarity];
+            const chanceStr = getItemDropChancePercent(item, caseObj);
+            return `
+                <div class="relative w-32 sm:w-36 h-36 sm:h-40 shrink-0 rounded-2xl border p-2.5 pt-5 flex flex-col items-center justify-between ${r.colorClass}">
+                    <span class="absolute top-1.5 right-2 font-mono-tech text-[10px] font-extrabold ${r.textClass}">${chanceStr}</span>
+                    <div class="w-16 h-16 rounded-xl inner-slot flex items-center justify-center">
+                        ${renderItemVisualHTML(item, "sm")}
+                    </div>
+                    <div class="w-full text-center">
+                        <div class="text-xs font-extrabold truncate">${getItemName(item)}</div>
+                        <div class="text-[10px] uppercase font-extrabold ${r.textClass}">${r.label}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function populateIdleRoulette() {
+            const current = CASES.find(c => c.id === state.selectedCase);
+            const track = document.getElementById("rouletteTrack");
+            track.style.transition = "none";
+            track.style.transform = "translateX(0px)";
+
+            let cardsHTML = "";
+            for (let i = 0; i < 16; i++) {
+                const item = rollWeightedItem(current);
+                cardsHTML += buildRouletteCardHTML(item, current);
+            }
+            track.innerHTML = cardsHTML;
+        }
+
+        function startSpin() {
+            if (isSpinning) return;
+            const currentCase = CASES.find(c => c.id === state.selectedCase);
+            const totalCost = getEffectiveSpinCost(currentCase);
+
+            if (state.balance < totalCost) {
+                showToast(t("notEnoughMoney"));
+                return;
+            }
+
+            // Roll item using boosted weights BEFORE consuming boost materials
+            const wonItem = rollWeightedItem(currentCase);
+
+            // Deduct MD cost & consume sacrificed boost materials
+            state.balance -= totalCost;
+            if (state.spinBoostUids.length > 0) {
+                state.inventory = state.inventory.filter(e => !state.spinBoostUids.includes(e.uid));
+                state.craftSlots = state.craftSlots.filter(id => !state.spinBoostUids.includes(id));
+                state.spinBoostUids = [];
+            }
+
+            state.stats.spins += 1;
+            isSpinning = true;
+            document.getElementById("spinBtn").disabled = true;
+            updateBalanceUI();
+
+            const totalCards = 48;
+            const winningIndex = 38;
+
+            const track = document.getElementById("rouletteTrack");
+            track.style.transition = "none";
+            track.style.transform = "translateX(0px)";
+
+            let cardsHTML = "";
+            for (let i = 0; i < totalCards; i++) {
+                const item = (i === winningIndex) ? wonItem : rollWeightedItem(currentCase);
+                cardsHTML += buildRouletteCardHTML(item, currentCase);
+            }
+            track.innerHTML = cardsHTML;
+
+            const firstCard = track.firstElementChild;
+            const cardWidth = firstCard ? firstCard.offsetWidth : 128;
+            const gap = 12;
+            const viewportWidth = track.parentElement.offsetWidth;
+            const jitter = Math.floor((Math.random() - 0.5) * (cardWidth * 0.45));
+            const targetOffset = (winningIndex * (cardWidth + gap)) + (cardWidth / 2) - (viewportWidth / 2) + 16 + jitter;
+
+            let lastCardPassed = 0;
+            const startTime = performance.now();
+            const duration = 4200;
+            const vibroMs = VIBRO_LEVELS[state.vibroLevel];
+            const rouletteBox = document.getElementById("rouletteBox");
+
+            function trackTicks(now) {
+                if (!isSpinning) return;
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const ease = 1 - Math.pow(1 - progress, 3.2);
+                const currentPos = ease * targetOffset;
+                const cardIdx = Math.floor(currentPos / (cardWidth + gap));
+
+                if (cardIdx > lastCardPassed) {
+                    lastCardPassed = cardIdx;
+                    playTickSound();
+                    if (vibroMs > 0) {
+                        triggerHaptic(vibroMs);
+                        // Visual tactile micro-pulse on container so user feels every tick
+                        rouletteBox.classList.remove("drum-tick-pulse");
+                        void rouletteBox.offsetWidth;
+                        rouletteBox.classList.add("drum-tick-pulse");
+                    }
+                }
+                if (progress < 1) {
+                    requestAnimationFrame(trackTicks);
+                }
+            }
+            requestAnimationFrame(trackTicks);
+
+            requestAnimationFrame(() => {
+                track.style.transition = `transform ${duration}ms cubic-bezier(0.12, 0.85, 0.18, 1)`;
+                track.style.transform = `translateX(-${targetOffset}px)`;
+            });
+
+            setTimeout(() => {
+                isSpinning = false;
+                document.getElementById("spinBtn").disabled = false;
+
+                const newUid = "uid_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6);
+                state.inventory.unshift({ uid: newUid, itemId: wonItem.id });
+                recordItemDiscovery(wonItem.id);
+                lastWonUid = newUid;
+                saveState();
+                renderAll();
+
+                playWinSound(wonItem.rarity);
+                if (vibroMs > 0) triggerHaptic(Math.min(60, vibroMs * 2));
+                showWinModal(wonItem, "NEW DROP!", currentCase);
+            }, duration + 150);
+        }
+
+        // ==================== WIN MODAL ====================
+        function showWinModal(item, subtitle, caseObj = null) {
+            const r = RARITIES[item.rarity];
+            const card = document.getElementById("winModalCard");
+            card.className = `w-full max-w-sm rounded-3xl border-2 p-6 text-center space-y-4 transform transition-all scale-100 surface-box relative ${r.colorClass}`;
+
+            const chanceBadge = document.getElementById("winItemChanceBadge");
+            chanceBadge.className = `absolute top-4 right-5 font-mono-tech text-xs font-black ${r.textClass}`;
+            chanceBadge.textContent = getItemDropChancePercent(item, caseObj);
+
+            document.getElementById("winModalSubtitle").textContent = subtitle;
+            document.getElementById("winItemVisual").innerHTML = renderItemVisualHTML(item, "md");
+            document.getElementById("winItemRarity").className = `text-xs uppercase tracking-widest font-extrabold mb-1 ${r.textClass}`;
+            document.getElementById("winItemRarity").textContent = r.label;
+            document.getElementById("winItemName").textContent = getItemName(item);
+            document.getElementById("winItemDesc").textContent = getItemDesc(item);
+            document.getElementById("winItemPrice").textContent = item.price.toLocaleString() + " MD";
+
+            document.getElementById("winModal").classList.remove("hidden");
+        }
+
+        function closeWinModal() {
+            document.getElementById("winModal").classList.add("hidden");
+            lastWonUid = null;
+        }
+
+        function sellWonItem() {
+            if (lastWonUid) sellInventoryItem(lastWonUid);
+            closeWinModal();
+        }
+
+        // ==================== INVENTORY ====================
+        function renderInventory() {
+            const grid = document.getElementById("inventoryGrid");
+            document.getElementById("invTotalCount").textContent = state.inventory.length;
+            document.getElementById("invTabBadge").textContent = state.inventory.length;
+
+            let totalValue = 0;
+            state.inventory.forEach(entry => {
+                const it = ITEMS_DB.find(i => i.id === entry.itemId);
+                if (it) totalValue += it.price;
+            });
+            document.getElementById("sellAllSum").textContent = totalValue.toLocaleString();
+
+            if (state.inventory.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-10 text-sm text-muted">${t("emptyInv")}</div>`;
+                return;
+            }
+
+            grid.innerHTML = state.inventory.map(entry => {
+                const item = ITEMS_DB.find(i => i.id === entry.itemId);
+                if (!item) return "";
+                const r = RARITIES[item.rarity];
+                const chanceStr = getItemDropChancePercent(item);
+                return `
+                    <div class="relative rounded-2xl border p-2.5 pt-5 flex flex-col justify-between ${r.colorClass}">
+                        <span class="absolute top-1.5 right-2 font-mono-tech text-[10px] font-extrabold ${r.textClass}">${chanceStr}</span>
+                        <div>
+                            <div class="w-full h-16 rounded-xl inner-slot mb-2 flex items-center justify-center">
+                                ${renderItemVisualHTML(item, "sm")}
+                            </div>
+                            <div class="text-[10px] font-extrabold uppercase ${r.textClass}">${r.label}</div>
+                            <div class="text-xs font-bold truncate">${getItemName(item)}</div>
+                        </div>
+                        <button onclick="sellInventoryItem('${entry.uid}')" class="mt-2.5 w-full py-1.5 rounded-lg inner-slot hover:bg-amber-500/20 border border-[#2c2c2c] text-amber-500 font-mono-tech text-[11px] font-bold transition active:scale-95">
+                            +${item.price.toLocaleString()} MD
+                        </button>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function sellInventoryItem(uid) {
+            const idx = state.inventory.findIndex(e => e.uid === uid);
+            if (idx === -1) return;
+            const item = ITEMS_DB.find(i => i.id === state.inventory[idx].itemId);
+            if (item) state.balance += item.price;
+            state.inventory.splice(idx, 1);
+            state.craftSlots = state.craftSlots.filter(id => id !== uid);
+            state.spinBoostUids = state.spinBoostUids.filter(id => id !== uid);
+            saveState();
+            renderAll();
+        }
+
+        function sellAllItems() {
+            if (state.inventory.length === 0) return;
+            let sum = 0;
+            state.inventory.forEach(entry => {
+                const it = ITEMS_DB.find(i => i.id === entry.itemId);
+                if (it) sum += it.price;
+            });
+            state.balance += sum;
+            state.inventory = [];
+            state.craftSlots = [];
+            state.spinBoostUids = [];
+            saveState();
+            renderAll();
+            showToast(`+${sum.toLocaleString()} MD`);
+        }
+
+        // ==================== CRAFT / COMBINER (UP TO 10 ITEMS) ====================
+        function renderCraft() {
+            state.craftSlots = state.craftSlots.filter(uid => state.inventory.some(e => e.uid === uid));
+            document.getElementById("craftSlotCount").textContent = state.craftSlots.length;
+
+            const slotsGrid = document.getElementById("craftSlotsGrid");
+            let slotsHTML = "";
+            for (let i = 0; i < 10; i++) {
+                const uid = state.craftSlots[i];
+                if (uid) {
+                    const entry = state.inventory.find(e => e.uid === uid);
+                    const item = ITEMS_DB.find(it => it.id === entry.itemId);
+                    const r = RARITIES[item.rarity];
+                    slotsHTML += `
+                        <button onclick="toggleCraftSlot('${uid}')" class="aspect-square rounded-xl border p-1 flex flex-col items-center justify-center relative ${r.colorClass}">
+                            <span class="text-sm font-black">${item.symbol}</span>
+                            <span class="text-[8px] font-mono-tech text-amber-500">${item.price}</span>
+                        </button>
+                    `;
+                } else {
+                    slotsHTML += `
+                        <div class="aspect-square rounded-xl border border-dashed border-[#3a3a3a] inner-slot flex items-center justify-center text-muted text-xs font-mono-tech">
+                            ${i + 1}
+                        </div>
+                    `;
+                }
+            }
+            slotsGrid.innerHTML = slotsHTML;
+
+            const calc = calculateCraftOdds();
+            const targetEl = document.getElementById("craftTargetRarity");
+            if (calc.targetRarity) {
+                const r = RARITIES[calc.targetRarity];
+                targetEl.className = `font-extrabold uppercase ${r.textClass}`;
+                targetEl.textContent = r.label;
+            } else {
+                targetEl.className = "font-bold text-muted";
+                targetEl.textContent = "—";
+            }
+
+            document.getElementById("craftChanceText").textContent = calc.chance + "%";
+            document.getElementById("craftChanceBar").style.width = calc.chance + "%";
+            document.getElementById("executeCraftBtn").disabled = state.craftSlots.length < 2;
+
+            const craftInvGrid = document.getElementById("craftInventoryGrid");
+            if (state.inventory.length === 0) {
+                craftInvGrid.innerHTML = `<div class="col-span-full text-center py-6 text-xs text-muted">${t("emptyInv")}</div>`;
+                return;
+            }
+
+            craftInvGrid.innerHTML = state.inventory.map(entry => {
+                const item = ITEMS_DB.find(i => i.id === entry.itemId);
+                const r = RARITIES[item.rarity];
+                const isSelected = state.craftSlots.includes(entry.uid);
+                return `
+                    <button onclick="toggleCraftSlot('${entry.uid}')" class="rounded-xl border p-2 text-center transition relative ${r.colorClass} ${isSelected ? 'ring-2 ring-red-500 opacity-50' : 'active:scale-95'}">
+                        <div class="text-sm font-black font-mono-tech">${item.symbol}</div>
+                        <div class="text-[10px] truncate">${getItemName(item)}</div>
+                        <div class="text-[8px] uppercase font-bold ${r.textClass}">${r.label}</div>
+                    </button>
+                `;
+            }).join("");
+        }
+
+        function toggleCraftSlot(uid) {
+            const idx = state.craftSlots.indexOf(uid);
+            if (idx !== -1) {
+                state.craftSlots.splice(idx, 1);
+            } else {
+                if (state.craftSlots.length >= 10) {
+                    showToast("Max 10 items!");
+                    return;
+                }
+                state.craftSlots.push(uid);
+            }
+            renderCraft();
+        }
+
+        function clearCraftSlots() {
+            state.craftSlots = [];
+            renderCraft();
+        }
+
+        function calculateCraftOdds() {
+            if (state.craftSlots.length < 2) return { targetRarity: null, chance: 0 };
+            let maxOrder = 1;
+            let totalValue = 0;
+
+            state.craftSlots.forEach(uid => {
+                const entry = state.inventory.find(e => e.uid === uid);
+                if (entry) {
+                    const item = ITEMS_DB.find(i => i.id === entry.itemId);
+                    totalValue += item.price;
+                    const ord = RARITIES[item.rarity].order;
+                    if (ord > maxOrder) maxOrder = ord;
+                }
+            });
+
+            const nextOrder = Math.min(maxOrder + 1, 7);
+            const targetRarity = Object.keys(RARITIES).find(k => RARITIES[k].order === nextOrder);
+
+            const targetPool = ITEMS_DB.filter(i => i.rarity === targetRarity);
+            const avgTargetPrice = targetPool.reduce((s, i) => s + i.price, 0) / targetPool.length;
+
+            let rawChance = Math.round((totalValue / avgTargetPrice) * 82 + (state.craftSlots.length * 2.5));
+            const chance = Math.max(8, Math.min(92, rawChance));
+            return { targetRarity, chance };
+        }
+
+        function executeCraft() {
+            if (state.craftSlots.length < 2) return;
+            const { targetRarity, chance } = calculateCraftOdds();
+
+            state.inventory = state.inventory.filter(e => !state.craftSlots.includes(e.uid));
+            state.spinBoostUids = state.spinBoostUids.filter(uid => state.inventory.some(e => e.uid === uid));
+            state.craftSlots = [];
+            state.stats.crafts += 1;
+
+            if (Math.random() * 100 <= chance) {
+                const pool = ITEMS_DB.filter(i => i.rarity === targetRarity);
+                const wonItem = pool[Math.floor(Math.random() * pool.length)];
+                const newUid = "uid_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6);
+                state.inventory.unshift({ uid: newUid, itemId: wonItem.id });
+                recordItemDiscovery(wonItem.id);
+                lastWonUid = newUid;
+                saveState();
+                renderAll();
+                playWinSound(wonItem.rarity);
+                showWinModal(wonItem, t("craftSuccess"));
+            } else {
+                saveState();
+                renderAll();
+                playTickSound();
+                showToast(t("craftFail"));
+            }
+        }
+
+        // ==================== INDEX (100 ITEMS + CATEGORIES + SORTING) ====================
+        function setIndexCategory(cat) {
+            state.indexCategory = cat;
+            renderIndex();
+        }
+
+        function buildIndexCardHTML(item) {
+            const r = RARITIES[item.rarity];
+            const countObtained = getDiscoveredCount(item.id);
+            const isUnlocked = countObtained > 0;
+            const chanceStr = getItemDropChancePercent(item);
+
+            if (isUnlocked) {
+                return `
+                    <div class="relative rounded-2xl border p-2.5 pt-5 flex flex-col justify-between ${r.colorClass}">
+                        <span class="absolute top-1.5 right-2 font-mono-tech text-[10px] font-extrabold ${r.textClass}">${chanceStr}</span>
+                        <span class="absolute top-1.5 left-2 font-mono-tech text-[9px] px-1.5 py-0.2 rounded bg-black/35 text-white">x${countObtained}</span>
+                        <div>
+                            <div class="w-full h-16 rounded-xl inner-slot mb-2 flex items-center justify-center">
+                                ${renderItemVisualHTML(item, "sm")}
+                            </div>
+                            <div class="text-[10px] font-extrabold uppercase ${r.textClass}">${r.label}</div>
+                            <div class="text-xs font-extrabold mt-0.5 truncate">${getItemName(item)}</div>
+                            <p class="text-[10px] text-muted mt-1 line-clamp-2">${getItemDesc(item)}</p>
+                        </div>
+                        <div class="mt-2 pt-1.5 border-t border-[#2c2c2c] flex items-center justify-between">
+                            <span class="text-[10px] text-muted">${t("valueLabel")}</span>
+                            <span class="font-mono-tech text-xs font-bold text-amber-500">${item.price.toLocaleString()} MD</span>
+                        </div>
+                    </div>
+                `;
+            } else {
+                // Gray translucent silhouette with lock icon for uncollected items
+                return `
+                    <div class="relative rounded-2xl border p-2.5 pt-5 flex flex-col justify-between index-locked">
+                        <span class="absolute top-1.5 right-2 font-mono-tech text-[10px] font-extrabold text-muted">${chanceStr}</span>
+                        <span class="absolute top-1.5 left-2 text-[10px]">🔒</span>
+                        <div>
+                            <div class="w-full h-16 rounded-xl inner-slot mb-2 flex items-center justify-center">
+                                ${renderItemVisualHTML(item, "sm")}
+                            </div>
+                            <div class="text-[10px] font-extrabold uppercase text-muted">${r.label}</div>
+                            <div class="text-xs font-bold text-muted mt-0.5 truncate">${getItemName(item)}</div>
+                            <p class="text-[10px] text-muted mt-1 line-clamp-2">${getItemDesc(item)}</p>
+                        </div>
+                        <div class="mt-2 pt-1.5 border-t border-[#2c2c2c] flex items-center justify-between">
+                            <span class="text-[10px] text-muted">${t("valueLabel")}</span>
+                            <span class="font-mono-tech text-xs font-bold text-muted">${item.price.toLocaleString()} MD</span>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function renderIndex() {
+            // Update category pill styles
+            document.querySelectorAll(".idx-cat-btn").forEach(btn => {
+                const active = btn.getAttribute("data-cat") === state.indexCategory;
+                btn.className = active
+                    ? "idx-cat-btn px-3 py-1.5 rounded-xl border border-red-500 bg-red-500/15 text-red-500 text-xs font-bold whitespace-nowrap transition"
+                    : "idx-cat-btn px-3 py-1.5 rounded-xl border border-[#2c2c2c] elevated-box text-muted text-xs font-bold whitespace-nowrap transition";
+            });
+
+            const unlockedTotal = Object.keys(state.discovered || {}).length;
+            document.getElementById("indexProgressBadge").textContent = `${unlockedTotal} / ${ITEMS_DB.length}`;
+
+            const sortMode = document.getElementById("indexSortSelect").value;
+            const locale = state.lang === "ru" ? "ru" : "en";
+
+            // Filter by selected category
+            let filtered = state.indexCategory === "ALL"
+                ? [...ITEMS_DB]
+                : ITEMS_DB.filter(i => i.cat === state.indexCategory);
+
+            const container = document.getElementById("indexContainer");
+
+            // Mode 4: Grouped by categories showing collected first (Common -> Rainbow)
+            if (sortMode === "collected_cat") {
+                const catOrder = [
+                    { key: "elements", labelKey: "catElements", icon: "⚛️" },
+                    { key: "metals", labelKey: "catMetals", icon: "🔩" },
+                    { key: "minerals", labelKey: "catMinerals", icon: "💎" },
+                    { key: "materials", labelKey: "catMaterials", icon: "🐊" }
+                ];
+
+                container.innerHTML = catOrder.map(c => {
+                    const catItems = filtered
+                        .filter(i => i.cat === c.key)
+                        .sort((a, b) => {
+                            const aGot = getDiscoveredCount(a.id) > 0 ? 1 : 0;
+                            const bGot = getDiscoveredCount(b.id) > 0 ? 1 : 0;
+                            if (bGot !== aGot) return bGot - aGot;
+                            return RARITIES[a.rarity].order - RARITIES[b.rarity].order;
+                        });
+                    if (catItems.length === 0) return "";
+                    const gotInCat = catItems.filter(i => getDiscoveredCount(i.id) > 0).length;
+
+                    return `
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between px-1">
+                                <span class="text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                                    <span>${c.icon}</span>
+                                    <span>${t(c.labelKey)}</span>
+                                </span>
+                                <span class="font-mono-tech text-xs text-muted">${gotInCat} / ${catItems.length}</span>
+                            </div>
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                                ${catItems.map(buildIndexCardHTML).join("")}
+                            </div>
+                        </div>
+                    `;
+                }).join("");
+                return;
+            }
+
+            // Standard flat sorts
+            if (sortMode === "alpha") {
+                filtered.sort((a, b) => getItemName(a).localeCompare(getItemName(b), locale));
+            } else if (sortMode === "rarity") {
+                filtered.sort((a, b) => {
+                    const diff = RARITIES[a.rarity].order - RARITIES[b.rarity].order;
+                    return diff !== 0 ? diff : getItemName(a).localeCompare(getItemName(b), locale);
+                });
+            } else if (sortMode === "newest") {
+                filtered.sort((a, b) => {
+                    const ta = getDiscoveredTimestamp(a.id);
+                    const tb = getDiscoveredTimestamp(b.id);
+                    if (tb !== ta) return tb - ta;
+                    return getItemName(a).localeCompare(getItemName(b), locale);
+                });
+            }
+
+            container.innerHTML = `
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    ${filtered.map(buildIndexCardHTML).join("")}
+                </div>
+            `;
+        }
+
+        // ==================== DAILY GIFT, QUESTS & HONEST LEADERBOARD ====================
+        function claimDailyGift() {
+            const now = Date.now();
+            const cooldown = 12 * 60 * 60 * 1000;
+
+            if (state.balance < 100 && state.inventory.length === 0) {
+                state.balance += 300;
+                saveState();
+                renderAll();
+                playWinSound("Rare");
+                showToast("+300 MD!");
+                return;
+            }
+
+            if (now - state.lastDailyClaim >= cooldown) {
+                state.balance += 500;
+                state.lastDailyClaim = now;
+                saveState();
+                renderAll();
+                playWinSound("Epic");
+                showToast("+500 MD!");
+            } else {
+                const remMins = Math.ceil((cooldown - (now - state.lastDailyClaim)) / 60000);
+                const hrs = Math.floor(remMins / 60);
+                const mins = remMins % 60;
+                showToast(state.lang === "ru" ? `Подарок через ${hrs}ч ${mins}м` : `Next gift in ${hrs}h ${mins}m`);
+            }
+        }
+
+        function renderQuests() {
+            const quests = [
+                {
+                    id: "q_spins",
+                    titleRu: "Испытатель удачи: покрути барабан 5 раз",
+                    titleEn: "Lucky Tester: Spin the roulette 5 times",
+                    progress: Math.min(state.stats.spins, 5),
+                    target: 5,
+                    reward: 500
+                },
+                {
+                    id: "q_craft",
+                    titleRu: "Алхимик: проведи 2 синтеза в крафте",
+                    titleEn: "Alchemist: Perform 2 synthesizer combines",
+                    progress: Math.min(state.stats.crafts, 2),
+                    target: 2,
+                    reward: 900
+                },
+                {
+                    id: "q_invite",
+                    titleRu: "Пригласи 3 друзей в @mendeleev_drop_bot",
+                    titleEn: "Invite 3 friends to @mendeleev_drop_bot",
+                    progress: Math.min(state.stats.invites, 3),
+                    target: 3,
+                    reward: 2000,
+                    isInvite: true
+                }
+            ];
+
+            document.getElementById("questsList").innerHTML = quests.map(q => {
+                const claimed = state.claimedQuests.includes(q.id);
+                const done = q.progress >= q.target;
+                const title = state.lang === "ru" ? q.titleRu : q.titleEn;
+
+                return `
+                    <div class="inner-slot border border-[#2c2c2c] rounded-2xl p-3.5 space-y-2.5">
+                        <div class="flex items-start justify-between gap-2">
+                            <div>
+                                <div class="text-xs sm:text-sm font-bold">${title}</div>
+                                <div class="text-[11px] font-mono-tech text-amber-500 mt-0.5">+${q.reward} MD</div>
+                            </div>
+                            <span class="font-mono-tech text-xs px-2 py-0.5 rounded elevated-box">${q.progress}/${q.target}</span>
+                        </div>
+                        <div class="w-full h-1.5 elevated-box rounded-full overflow-hidden">
+                            <div class="h-full bg-red-500" style="width: ${(q.progress / q.target) * 100}%"></div>
+                        </div>
+                        <div class="flex gap-2">
+                            ${q.isInvite && !done ? `
+                                <button onclick="shareInviteLink()" class="flex-1 py-2 rounded-xl bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/40 text-blue-500 text-xs font-bold transition">
+                                    🔗 ${state.lang === "ru" ? "Поделиться ссылкой" : "Share Invite Link"}
+                                </button>
+                            ` : ""}
+                            <button onclick="claimQuest('${q.id}', ${q.reward})" ${(!done || claimed) ? "disabled" : ""} class="flex-1 py-2 rounded-xl text-xs font-extrabold uppercase transition ${claimed ? 'elevated-box text-muted' : done ? 'bg-emerald-500 text-slate-950 shadow-lg' : 'elevated-box opacity-50 text-muted cursor-not-allowed'}">
+                                ${claimed ? (state.lang === "ru" ? "Получено ✓" : "Claimed ✓") : (state.lang === "ru" ? "Забрать награду" : "Claim Reward")}
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function shareInviteLink() {
+            const link = "https://t.me/mendeleev_drop_bot?start=invite";
+            const tempInput = document.createElement("input");
+            tempInput.value = link;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand("copy");
+            document.body.removeChild(tempInput);
+
+            state.stats.invites = Math.min(3, state.stats.invites + 1);
+            saveState();
+            renderQuests();
+            showToast(t("copiedInvite"));
+        }
+
+        function claimQuest(id, reward) {
+            if (state.claimedQuests.includes(id)) return;
+            state.claimedQuests.push(id);
+            state.balance += reward;
+            saveState();
+            renderAll();
+            playWinSound("Legendary");
+            showToast(`+${reward} MD!`);
+        }
+
+        function renderLeaderboard() {
+            let invWorth = 0;
+            state.inventory.forEach(e => {
+                const it = ITEMS_DB.find(i => i.id === e.itemId);
+                if (it) invWorth += it.price;
+            });
+            const playerNetWorth = state.balance + invWorth;
+            const discoveredCount = Object.keys(state.discovered || {}).length;
+
+            document.getElementById("leaderboardList").innerHTML = `
+                <div class="flex items-center justify-between p-3.5 rounded-2xl border border-amber-500 bg-amber-500/10">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="text-2xl shrink-0">${state.avatar || "⚗️"}</span>
+                        <div class="truncate">
+                            <div class="text-xs sm:text-sm font-black truncate flex items-center gap-1.5">
+                                <span>${state.nickname || "Pioneer"}</span>
+                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-500 font-mono-tech">#1 FIRST PLAYER</span>
+                            </div>
+                            <div class="text-[11px] text-muted mt-0.5">
+                                ${state.lang === "ru" ? `Собрано в Индексе: ${discoveredCount}/100` : `Index Discovered: ${discoveredCount}/100`}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="font-mono-tech font-extrabold text-xs sm:text-sm text-amber-500 shrink-0">
+                        ${playerNetWorth.toLocaleString()} MD
+                    </div>
+                </div>
+                <div class="rounded-xl border border-dashed border-[#2c2c2c] p-4 text-center text-xs text-muted">
+                    ${state.lang === "ru" ? "Слоты #2 — #100 пока свободны. Приглашай друзей в @mendeleev_drop_bot!" : "Slots #2 — #100 are currently empty. Invite friends to @mendeleev_drop_bot!"}
+                </div>
+            `;
+        }
+
+        // ==================== UI HELPERS ====================
+        function updateBalanceUI() {
+            document.getElementById("balanceDisplay").textContent = state.balance.toLocaleString();
+            document.getElementById("headerNickname").textContent = state.nickname || "Pioneer";
+            document.getElementById("headerAvatar").textContent = state.avatar || "⚗️";
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById("toast");
+            toast.textContent = msg;
+            toast.classList.remove("hidden");
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => {
+                toast.classList.add("hidden");
+            }, 2400);
+        }
+
+        function renderAll() {
+            updateBalanceUI();
+            updateSettingsControlsUI();
+            renderCaseSelector();
+            if (!isSpinning && document.getElementById("rouletteTrack").children.length === 0) {
+                populateIdleRoulette();
+            }
+            renderInventory();
+            renderCraft();
+            renderIndex();
+            renderQuests();
+            renderLeaderboard();
+        }
+    </script>
+</body>
+</html>
